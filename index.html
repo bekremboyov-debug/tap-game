@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -7,49 +6,77 @@
 <title>Tap Game</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-* { box-sizing: border-box; }
-body { background: #0f172a; color: #fff; font-family: Arial, sans-serif; text-align: center; margin: 0; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden; }
+:root {
+  --bg-color: #f0f4f8;
+  --text-color: #334155;
+  --header-text-color: #f59e0b;
+  --card-bg: #fff;
+  --nav-bg: #fff;
+  --nav-text: #94a3b8;
+  --nav-active: #f59e0b;
+  --coin-shadow: rgba(245, 158, 11, 0.4);
+}
 
-/* Ekranlar uchun umumiy uslub */
+body.dark {
+  --bg-color: #0f172a;
+  --text-color: #fff;
+  --header-text-color: #f59e0b;
+  --card-bg: #1e293b;
+  --nav-bg: #1e293b;
+  --nav-text: #94a3b8;
+  --nav-active: #f59e0b;
+  --coin-shadow: rgba(239, 68, 68, 0.5);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg-color); color: var(--text-color); font-family: Arial, sans-serif; text-align: center; margin: 0; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden; transition: background 0.3s, color 0.3s; }
+
 .screen { display: none; flex-direction: column; justify-content: space-between; height: 100%; padding: 20px; overflow-y: auto; }
 .screen.active { display: flex; }
 
-/* Boshlang'ich ekran */
 #start-screen { justify-content: center; align-items: center; gap: 20px; }
 .btn { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; border: none; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 15px rgba(34, 197, 94, 0.4); }
 .btn:active { transform: scale(0.95); }
 
-/* Asosiy o'yin ekrani */
 .header { padding: 10px; }
-#score { font-size: 42px; font-weight: bold; margin: 5px 0; color: #f59e0b; }
-.coin-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; }
-#coin { width: 180px; height: 180px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 50%; box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4); display: flex; justify-content: center; align-items: center; font-size: 70px; cursor: pointer; transition: transform 0.1s; }
+#score { font-size: 42px; font-weight: bold; margin: 5px 0; color: var(--header-text-color); }
+.coin-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; position: relative; }
+#coin { width: 190px; height: 190px; background: #000; border-radius: 50%; box-shadow: 0 0 30px var(--coin-shadow); display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.1s; user-select: none; overflow: hidden; border: 2px solid #ef4444; }
 #coin:active { transform: scale(0.92); }
+#coin img { width: 100%; height: 100%; object-fit: cover; }
+
+.plus-one { position: absolute; font-size: 24px; font-weight: bold; color: #22c55e; pointer-events: none; animation: fly 0.8s ease-out; opacity: 0; }
+@keyframes fly {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-60px); opacity: 0; }
+}
+
 .footer { padding: 10px; }
 .energy-bar { width: 100%; max-width: 300px; height: 14px; background: #334155; border-radius: 7px; margin: 0 auto; overflow: hidden; }
 .energy-fill { width: 100%; height: 100%; background: #22c55e; transition: width 0.3s; }
 
-/* Pastki navigatsiya menyusi */
-.nav-bar { display: flex; justify-content: space-around; background: #1e293b; padding: 10px 0; border-top: 1px solid #334155; }
-.nav-item { background: none; border: none; color: #94a3b8; font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.nav-item.active { color: #f59e0b; }
+.nav-bar { display: flex; justify-content: space-around; background: var(--nav-bg); padding: 10px 0; border-top: 1px solid #334155; transition: background 0.3s; }
+.nav-item { background: none; border: none; color: var(--nav-text); font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.nav-item.active { color: var(--nav-active); }
 .nav-item span { font-size: 20px; }
 
-/* Bo'limlar dizayni */
-.section-title { font-size: 24px; font-weight: bold; margin-bottom: 15px; color: #f59e0b; }
-.card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: left; display: flex; justify-content: space-between; align-items: center; }
-.card-info h4 { margin: 0 0 5px 0; font-size: 16px; }
+.section-title { font-size: 24px; font-weight: bold; margin-bottom: 15px; color: var(--header-text-color); }
+.card { background: var(--card-bg); padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: left; display: flex; justify-content: space-between; align-items: center; transition: background 0.3s; }
+.card-info h4 { margin: 0 0 5px 0; font-size: 16px; color: var(--text-color); }
 .card-info p { margin: 0; font-size: 12px; color: #94a3b8; }
 .upgrade-btn { background: #3b82f6; color: #fff; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 .upgrade-btn:disabled { background: #475569; cursor: not-allowed; }
+
+#theme-toggle { position: fixed; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer; z-index: 100; }
 </style>
 </head>
-<body>
+<body class="dark">
 
-<!-- 1. SALOMLASHISH VA BOSHLASH EKRANI -->
+<button id="theme-toggle" onclick="toggleTheme()">☀️</button>
+
 <div id="start-screen" class="screen active">
     <div>
-        <h1 style="color: #f59e0b; font-size: 32px;">🪙 Tap Coin Game</h1>
+        <h1 style="font-size: 32px; color: var(--header-text-color);">🪙 Tap Coin Game</h1>
         <p style="color: #94a3b8; max-width: 300px; margin: 0 auto; line-height: 1.5;">
             Bu vaqtincha ko'ngilochar o'yin! Tangalar yig'ing, kuchaytirgichlar sotib oling va reytingda yuqoriga chiqing.
         </p>
@@ -58,14 +85,16 @@ body { background: #0f172a; color: #fff; font-family: Arial, sans-serif; text-al
     <button class="btn" onclick="startGame()">O'yinni boshlash</button>
 </div>
 
-<!-- 2. ASOSIY TAP O'YIN EKRANI -->
 <div id="game-screen" class="screen">
     <div class="header">
         <div id="score">0</div>
         <div style="color: #94a3b8;">Tangalar</div>
     </div>
     <div class="coin-container">
-        <div id="coin">🪙</div>
+        <div id="coin">
+            <!-- Siz tashlagan rasm logosi -->
+            <img src="https://i.ibb.co/3yk7p0x/7987.jpg" alt="Logo" id="coin-logo" />
+        </div>
     </div>
     <div class="footer">
         <div id="energyText" style="margin-bottom: 6px; font-size: 14px;">Energiya: 100 / 100</div>
@@ -73,7 +102,6 @@ body { background: #0f172a; color: #fff; font-family: Arial, sans-serif; text-al
     </div>
 </div>
 
-<!-- 3. KUCHAYTIRISHLAR (BOOST) BO'LIMI -->
 <div id="boost-screen" class="screen">
     <div class="section-title">⚡ Kuchaytirishlar</div>
     <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -91,18 +119,10 @@ body { background: #0f172a; color: #fff; font-family: Arial, sans-serif; text-al
             </div>
             <button class="upgrade-btn" id="botUpgradeBtn" onclick="upgradeBot()">500 🪙</button>
         </div>
-        <div class="card">
-            <div class="card-info">
-                <h4>Energiya tiklanish tezligi</h4>
-                <p>Hozirgi interval: <span id="speedText">45s</span></p>
-            </div>
-            <button class="upgrade-btn" id="speedUpgradeBtn" onclick="upgradeSpeed()">1000 🪙</button>
-        </div>
     </div>
     <div></div>
 </div>
 
-<!-- 4. REYTING BO'LIMI -->
 <div id="rank-screen" class="screen">
     <div class="section-title">🏆 Reyting</div>
     <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -114,31 +134,30 @@ body { background: #0f172a; color: #fff; font-family: Arial, sans-serif; text-al
     <div></div>
 </div>
 
-<!-- 5. QOIDALAR BO'LIMI -->
 <div id="rules-screen" class="screen">
     <div class="section-title">📜 O'yin qoidalari</div>
     <div class="card" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-        <p>1. Tanganing ustiga bosib ballar yig'ing.</p>
-        <p>2. Har bir bosish energiyani sarflaydi. Energiya vaqt o'tishi bilan o'zi tiklanadi.</p>
-        <p>3. "Boost" bo'limidan har bir bosish qiymatini yoki energiya tezligini oshirishingiz mumkin.</p>
+        <p>1. Markaziy logoning ustiga bosib ballar yig'ing.</p>
+        <p>2. Har bir bosish energiyani sarflaydi. Energiya 30 sekund ichida to'liq tiklanadi.</p>
+        <p>3. "Boost" bo'limidan har bir bosish qiymatini oshirishingiz mumkin.</p>
         <p>4. Bu loyiha vaqtincha ko'ngilochar maqsadlarda tuzilgan.</p>
     </div>
     <div></div>
 </div>
 
-<!-- 6. PUL TO'LASH / CHIQARISH BO'LIMI -->
 <div id="wallet-screen" class="screen">
     <div class="section-title">💳 Pulni chiqarish</div>
     <div class="card" style="flex-direction: column; align-items: center; text-align: center; gap: 15px; padding: 25px;">
         <p style="color: #94a3b8; margin: 0;">Sizning balansingiz:</p>
-        <h2 id="walletScore" style="color: #f59e0b; margin: 0; font-size: 32px;">0 🪙</h2>
-        <p style="font-size: 12px; color: #64748b;">Hozircha bu bo'lim test rejimida ishlaydi, chunki o'yin vaqtincha ko'ngilochar o'yin ҳisoblanadi.</p>
-        <button class="btn" style="width: 100%; font-size: 16px; padding: 12px;" onclick="alert('Tez orada hamyon funksiyasi ulanadi!')">Pul chiqarish so'rovi</button>
+        <h2 id="walletScore" style="color: var(--header-text-color); margin: 0; font-size: 32px;">0 🪙</h2>
+        <p id="payoutStatusText" style="font-size: 13px; color: var(--text-color); line-height: 1.5; margin: 0;">
+            Pul to'lash sezoni kelishiga <b id="daysLeftNum" style="color: #f59e0b;">90</b> kun qoldi. 120 kundan keyin coinlarni almashtirishingiz mumkin.
+        </p>
+        <button class="btn" style="width: 100%; font-size: 16px; padding: 12px;" onclick="alert('Hamyon funksiyasi tez orada ulanadi!')">Pul chiqarish so'rovi</button>
     </div>
     <div></div>
 </div>
 
-<!-- PASTKI NAVIGATSIYA MENYusi -->
 <div class="nav-bar" id="navBar" style="display: none;">
     <button class="nav-item active" onclick="switchScreen('game-screen', this)"><span>🪙</span>O'yin</button>
     <button class="nav-item" onclick="switchScreen('boost-screen', this)"><span>⚡</span>Boost</button>
@@ -148,7 +167,6 @@ body { background: #0f172a; color: #fff; font-family: Arial, sans-serif; text-al
 </div>
 
 <script>
-// O'yin o'zgaruvchilari va ma'lumotlarni saqlash (LocalStorage)
 let score = parseInt(localStorage.getItem('gs_score')) || 0;
 let energy = parseInt(localStorage.getItem('gs_energy')) || 100;
 let maxEnergy = parseInt(localStorage.getItem('gs_maxEnergy')) || 100;
@@ -158,23 +176,35 @@ let tapUpgradeCost = parseInt(localStorage.getItem('gs_tapCost')) || 100;
 let botLevel = parseInt(localStorage.getItem('gs_botLevel')) || 0;
 let botCost = parseInt(localStorage.getItem('gs_botCost')) || 500;
 
-let speedLevel = parseInt(localStorage.getItem('gs_speedLevel')) || 0;
-let speedCost = parseInt(localStorage.getItem('gs_speedCost')) || 1000;
-let regenInterval = parseInt(localStorage.getItem('gs_regenInterval')) || 45; // sekund
+// Kunlarni hisoblash mantiqi
+let daysLeft = parseInt(localStorage.getItem('gs_daysLeft'));
+let lastCheckTime = parseInt(localStorage.getItem('gs_lastCheckTime'));
+const nowTime = Date.now();
 
-// DOM Elementlar
+if (isNaN(daysLeft)) {
+    daysLeft = 90;
+    localStorage.setItem('gs_daysLeft', daysLeft);
+    localStorage.setItem('gs_lastCheckTime', nowTime);
+} else {
+    let passedDays = Math.floor((nowTime - lastCheckTime) / (1000 * 60 * 60 * 24));
+    if (passedDays > 0) {
+        daysLeft = Math.max(0, daysLeft - passedDays);
+        localStorage.setItem('gs_daysLeft', daysLeft);
+        localStorage.setItem('gs_lastCheckTime', lastCheckTime + (passedDays * 1000 * 60 * 60 * 24));
+    }
+}
+
 const scoreEl = document.getElementById('score');
 const walletScoreEl = document.getElementById('walletScore');
 const myRankScoreEl = document.getElementById('myRankScore');
 const energyText = document.getElementById('energyText');
 const energyFill = document.getElementById('energyFill');
 const coin = document.getElementById('coin');
+const payoutStatusText = document.getElementById('payoutStatusText');
 
 const tapLevelEl = document.getElementById('tapLevel');
 const tapUpgradeBtn = document.getElementById('tapUpgradeBtn');
 const botUpgradeBtn = document.getElementById('botUpgradeBtn');
-const speedUpgradeBtn = document.getElementById('speedUpgradeBtn');
-const speedText = document.getElementById('speedText');
 
 function updateUI() {
     scoreEl.innerText = score;
@@ -183,6 +213,13 @@ function updateUI() {
     energyText.innerText = `Energiya: ${energy} / ${maxEnergy}`;
     energyFill.style.width = `${(energy / maxEnergy) * 100}%`;
 
+    // Matnni kunlarga qarab o'zgartirish
+    if (daysLeft > 0) {
+        payoutStatusText.innerHTML = `Pul to'lash sezoni kelishiga <b style="color: #f59e0b;">${daysLeft}</b> kun qoldi. 120 kundan keyin coinlarni almashtirishingiz mumkin.`;
+    } else {
+        payoutStatusText.innerHTML = `90 kun o'tdi! Endi 120 kundan keyin pul to'lanadi va coinlar almashtiriladi.`;
+    }
+
     tapLevelEl.innerText = tapPower;
     tapUpgradeBtn.innerText = `${tapUpgradeCost} 🪙`;
     tapUpgradeBtn.disabled = score < tapUpgradeCost;
@@ -190,11 +227,6 @@ function updateUI() {
     botUpgradeBtn.innerText = botLevel === 0 ? `${botCost} 🪙` : `Daraja: ${botLevel}`;
     botUpgradeBtn.disabled = score < botCost && botLevel === 0;
 
-    speedText.innerText = `${regenInterval}s`;
-    speedUpgradeBtn.innerText = speedLevel >= 3 ? "Maksimal" : `${speedCost} 🪙`;
-    speedUpgradeBtn.disabled = score < speedCost || speedLevel >= 3;
-
-    // LocalStoragega yozish
     localStorage.setItem('gs_score', score);
     localStorage.setItem('gs_energy', energy);
     localStorage.setItem('gs_maxEnergy', maxEnergy);
@@ -202,9 +234,6 @@ function updateUI() {
     localStorage.setItem('gs_tapCost', tapUpgradeCost);
     localStorage.setItem('gs_botLevel', botLevel);
     localStorage.setItem('gs_botCost', botCost);
-    localStorage.setItem('gs_speedLevel', speedLevel);
-    localStorage.setItem('gs_speedCost', speedCost);
-    localStorage.setItem('gs_regenInterval', regenInterval);
 }
 
 function startGame() {
@@ -223,17 +252,38 @@ function switchScreen(screenId, btnElement) {
     updateUI();
 }
 
-// Tap qilish hodisasi
-coin.addEventListener('click', () => {
+coin.addEventListener('click', (e) => {
     if (energy >= tapPower) {
         score += tapPower;
         energy -= tapPower;
         updateUI();
+        showPlusOne(e, tapPower);
         if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
     }
 });
 
-// Kuchaytirish: Tap +1 qo'shish
+function showPlusOne(e, amount) {
+    const coinContainer = document.querySelector('.coin-container');
+    const plus = document.createElement('div');
+    plus.classList.add('plus-one');
+    plus.innerText = `+${amount}`;
+    
+    const rect = coin.getBoundingClientRect();
+    const x = e.clientX || (e.touches && e.touches[0].clientX);
+    const y = e.clientY || (e.touches && e.touches[0].clientY);
+    
+    if (x && y) {
+        plus.style.left = `${x - rect.left}px`;
+        plus.style.top = `${y - rect.top}px`;
+    } else {
+        plus.style.left = `${rect.width / 2}px`;
+        plus.style.top = `${rect.height / 2}px`;
+    }
+    
+    coinContainer.appendChild(plus);
+    setTimeout(() => { plus.remove(); }, 800);
+}
+
 function upgradeTap() {
     if (score >= tapUpgradeCost) {
         score -= tapUpgradeCost;
@@ -243,7 +293,6 @@ function upgradeTap() {
     }
 }
 
-// Kuchaytirish: Avto Robot
 function upgradeBot() {
     if (score >= botCost && botLevel === 0) {
         score -= botCost;
@@ -253,22 +302,24 @@ function upgradeBot() {
     }
 }
 
-// Kuchaytirish: Energiya tezligi (Har upgrade 45 sekund qo'shiladi, 3 martadan keyin 1 daqiqadan)
-function upgradeSpeed() {
-    if (score >= speedCost && speedLevel < 3) {
-        score -= speedCost;
-        speedLevel++;
-        if (speedLevel <= 3) {
-            regenInterval += 45; // Har safar 45 sekund qo'shiladi
-        } else {
-            regenInterval += 60; // 3 martadan keyin 1 daqiqadan qo'shiladi
-        }
-        speedCost = Math.floor(speedCost * 2);
-        updateUI();
+function toggleTheme() {
+    document.body.classList.toggle('dark');
+    const btn = document.getElementById('theme-toggle');
+    if (document.body.classList.contains('dark')) {
+        btn.innerText = '☀️';
+        localStorage.setItem('gs_theme', 'dark');
+    } else {
+        btn.innerText = '🌙';
+        localStorage.setItem('gs_theme', 'light');
     }
 }
 
-// Avto-robot har sekundda ishlaydi
+const savedTheme = localStorage.getItem('gs_theme');
+if (savedTheme === 'light') {
+    document.body.classList.remove('dark');
+    document.getElementById('theme-toggle').innerText = '🌙';
+}
+
 setInterval(() => {
     if (botLevel > 0) {
         score += botLevel;
@@ -276,18 +327,12 @@ setInterval(() => {
     }
 }, 1000);
 
-// Energiyani vaqt bo'yicha tiklash (regenInterval sekundda bitta energiya)
-let timer = 0;
 setInterval(() => {
-    timer++;
-    if (timer >= regenInterval) {
-        timer = 0;
-        if (energy < maxEnergy) {
-            energy++;
-            updateUI();
-        }
+    if (energy < maxEnergy) {
+        energy++;
+        updateUI();
     }
-}, 1000);
+}, 300);
 
 updateUI();
 </script>
