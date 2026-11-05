@@ -6,8 +6,6 @@
 <title>Coin Game</title>
 <!-- Telegram Web App Skripti -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<!-- Supabase Kutubxonasi -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --bg-color: linear-gradient(135deg, #b91c1c 0%, #111827 60%, #030712 100%);
@@ -134,7 +132,7 @@ body { background: var(--bg-color); background-attachment: fixed; color: var(--t
         <p>1. Markaziy 3D logoning ustiga bosib ballar yig'ing.</p>
         <p>2. Har bir bosish energiyani sarflaydi. Energiya vaqt o'tishi bilan tiklanadi.</p>
         <p>3. "Boost" bo'limidan har bir bosish qiymatini oshirishingiz mumkin.</p>
-        <p>4. Ballaringiz avtomatik ravishda saqlanadi.</p>
+        <p>4. Ballaringiz avtomatik ravishda xavfsiz tarzda saqlanadi.</p>
     </div>
     <div></div>
 </div>
@@ -163,197 +161,30 @@ body { background: var(--bg-color); background-attachment: fixed; color: var(--t
 </div>
 
 <script>
-    // Supabase Sozlamalari
-    const SUPABASE_URL = 'https://tfggugkytmktrndyacqj.supabase.co';
-    const SUPABASE_ANON_KEY = 'Sb_publishable_nSWC26Xd_CQPnsEvC7L3rg_1srSbJh';
-    
-    let supabaseClient = null;
-    try {
-        if (window.supabase) {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
-    } catch (e) {
-        console.error("Supabase yuklashda xatolik:", e);
-    }
-
-    // Telegram WebApp
+    // Telegram WebApp sozlamalari
     const tg = window.Telegram?.WebApp;
-    if (tg) tg.expand();
-
-    let telegramId = tg?.initDataUnsafe?.user?.id || 123456789;
-    let username = tg?.initDataUnsafe?.user?.username || ('player_' + telegramId);
-    let fullName = tg?.initDataUnsafe?.user?.first_name 
-        ? (tg.initDataUnsafe.user.first_name + (tg.initDataUnsafe.user.last_name ? ' ' + tg.initDataUnsafe.user.last_name : '')) 
-        : "O'yinchi";
-
-    document.getElementById('userNameRank').innerText = fullName;
-    document.getElementById('userNameWallet').innerText = fullName;
-    document.getElementById('user-info').innerText = `@${username}`;
-
-    let score = 0;
-    let energy = 100;
-    let maxEnergy = 100;
-    let tapPower = 1;
-    let tapUpgradeCost = 100;
-    let botLevel = 0;
-    let botCost = 500;
-
-    const scoreEl = document.getElementById('score');
-    const walletScoreEl = document.getElementById('walletScore');
-    const myRankScoreEl = document.getElementById('myRankScore');
-    const energyText = document.getElementById('energyText');
-    const energyFill = document.getElementById('energyFill');
-    const coin = document.getElementById('coin');
-    const tapLevelEl = document.getElementById('tapLevel');
-    const tapUpgradeBtn = document.getElementById('tapUpgradeBtn');
-    const botUpgradeBtn = document.getElementById('botUpgradeBtn');
-
-    // Ma'lumotni yuklab olish (Xavfsiz usul)
-    async function loadUserData() {
-        if (supabaseClient) {
-            try {
-                let { data, error } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('telegram_id', telegramId)
-                    .single();
-
-                if (data) {
-                    score = data.coins || 0;
-                    tapPower = data.tap_power || 1;
-                    botLevel = data.bot_level || 0;
-                    tapUpgradeCost = data.tap_cost || 100;
-                } else {
-                    await supabaseClient.from('users').insert([
-                        { telegram_id: telegramId, username: username, coins: 0, tap_power: 1, bot_level: 0, tap_cost: 100 }
-                    ]);
-                }
-            } catch (err) {
-                console.error("Baza bilan bog'lanishda xatolik, lokal xotiraga o'tamiz:", err);
-                score = parseInt(localStorage.getItem('gs_score')) || 0;
-            }
-        } else {
-            score = parseInt(localStorage.getItem('gs_score')) || 0;
-        }
-        updateUI();
+    if (tg) {
+        try { tg.expand(); } catch (e) {}
     }
 
-    // Bazaga saqlash
-    async function saveUserData() {
-        // Zaxira uchun har doim lokal saqlaymiz
-        localStorage.setItem('gs_score', score);
-        
-        if (supabaseClient) {
-            try {
-                await supabaseClient
-                    .from('users')
-                    .update({ 
-                        coins: score, 
-                        tap_power: tapPower, 
-                        bot_level: botLevel, 
-                        tap_cost: tapUpgradeCost 
-                    })
-                    .eq('telegram_id', telegramId);
-            } catch (err) {
-                console.error("Saqlashda xatolik:", err);
-            }
+    let userName = "O'yinchi";
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        const user = tg.initDataUnsafe.user;
+        userName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+        if (user.username) {
+            document.getElementById('user-info').innerText = '@' + user.username;
         }
     }
+    document.getElementById('userNameRank').innerText = userName;
+    document.getElementById('userNameWallet').innerText = userName;
 
-    function updateUI() {
-        scoreEl.innerText = score;
-        walletScoreEl.innerText = score + " 🪙";
-        myRankScoreEl.innerText = score + " 🪙";
-        energyText.innerText = `Energiya: ${energy} / ${maxEnergy}`;
-        energyFill.style.width = `${(energy / maxEnergy) * 100}%`;
+    let score = parseInt(localStorage.getItem('gs_score')) || 0;
+    let energy = parseInt(localStorage.getItem('gs_energy')) || 100;
+    let maxEnergy = parseInt(localStorage.getItem('gs_maxEnergy')) || 100;
+    let tapPower = parseInt(localStorage.getItem('gs_tapPower')) || 1;
+    let tapUpgradeCost = parseInt(localStorage.getItem('gs_tapCost')) || 100;
+    let botLevel = parseInt(localStorage.getItem('gs_botLevel')) || 0;
+    let botCost = parseInt(localStorage.getItem('gs_botCost')) || 500;
 
-        tapLevelEl.innerText = tapPower;
-        tapUpgradeBtn.innerText = `${tapUpgradeCost} 🪙`;
-        tapUpgradeBtn.disabled = score < tapUpgradeCost;
-
-        botUpgradeBtn.innerText = botLevel === 0 ? `${botCost} 🪙` : `Daraja: ${botLevel}`;
-        botUpgradeBtn.disabled = score < botCost && botLevel === 0;
-    }
-
-    function switchScreen(screenId, btnElement) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
-
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        btnElement.classList.add('active');
-        updateUI();
-    }
-
-    coin.addEventListener('click', (e) => {
-        if (energy >= tapPower) {
-            score += tapPower;
-            energy -= tapPower;
-            updateUI();
-            showPlusOne(e, tapPower);
-            saveUserData();
-            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-        }
-    });
-
-    function showPlusOne(e, amount) {
-        const coinContainer = document.querySelector('.coin-container');
-        const plus = document.createElement('div');
-        plus.classList.add('plus-one');
-        plus.innerText = `+${amount}`;
-        
-        const rect = coin.getBoundingClientRect();
-        const x = e.clientX || (e.touches && e.touches[0].clientX);
-        const y = e.clientY || (e.touches && e.touches[0].clientY);
-        
-        if (x && y) {
-            plus.style.left = `${x - rect.left}px`;
-            plus.style.top = `${y - rect.top}px`;
-        } else {
-            plus.style.left = `${rect.width / 2}px`;
-            plus.style.top = `${rect.height / 2}px`;
-        }
-        
-        coinContainer.appendChild(plus);
-        setTimeout(() => { plus.remove(); }, 800);
-    }
-
-    function upgradeTap() {
-        if (score >= tapUpgradeCost) {
-            score -= tapUpgradeCost;
-            tapPower++;
-            tapUpgradeCost = Math.floor(tapUpgradeCost * 1.8);
-            updateUI();
-            saveUserData();
-        }
-    }
-
-    function upgradeBot() {
-        if (score >= botCost && botLevel === 0) {
-            score -= botCost;
-            botLevel = 1;
-            updateUI();
-            saveUserData();
-            alert("Avto-robot faollashdi! Endi u har sekundda tanga yig'adi.");
-        }
-    }
-
-    setInterval(() => {
-        if (botLevel > 0) {
-            score += botLevel;
-            updateUI();
-            saveUserData();
-        }
-    }, 1000);
-
-    setInterval(() => {
-        if (energy < maxEnergy) {
-            energy++;
-            updateUI();
-        }
-    }, 300);
-
-    // O'yinni yuklash
-    loadUserData();
-</script>
-</body>
-</html>
+    let daysLeft = parseInt(localStorage.getItem('gs_daysLeft'));
+    let lastCheckTime = parseInt(localStorage.getItem('gs_lastCheckTime'));
