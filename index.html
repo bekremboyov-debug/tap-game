@@ -87,4 +87,357 @@ body { background: var(--bg-color); background-attachment: fixed; color: var(--t
 .nav-item span { font-size: 18px; }
 
 .section-title { font-size: 24px; font-weight: bold; margin-bottom: 15px; color: var(--header-text-color); text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-.card { background: var(--card-bg); backdrop-filter: blur(5px); padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: left; display: flex; justify-content: space-between; align-items: center;
+.card { background: var(--card-bg); backdrop-filter: blur(5px); padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: left; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+.card-info h4 { margin: 0 0 5px 0; font-size: 16px; color: var(--text-color); }
+.card-info p { margin: 0; font-size: 12px; color: #94a3b8; }
+.upgrade-btn { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4); }
+.upgrade-btn:disabled { background: #475569; cursor: not-allowed; box-shadow: none; }
+.claim-btn { background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+.claim-btn:disabled { background: #475569; cursor: not-allowed; }
+
+.promo-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(15,23,42,0.8); color: #fff; font-size: 14px; margin-bottom: 10px; outline: none; }
+.promo-input:focus { border-color: #f59e0b; }
+</style>
+</head>
+<body>
+
+<!-- 1. O'YIN EKRANI -->
+<div id="game-screen" class="screen active">
+    <div class="header">
+        <div class="streak-badge" onclick="openStreakModal()">
+            🔥 <span id="streakCount">1</span> kun
+        </div>
+        <div id="score">0</div>
+        <div id="user-info" style="color: #94a3b8;">Yuklanmoqda...</div>
+    </div>
+    <div class="coin-container">
+        <div id="coin">
+            <img src="https://images.unsplash.com/photo-1621416894569-0f39ed31d247?w=500&auto=format&fit=crop&q=60" alt="Logo" />
+        </div>
+    </div>
+    <div class="footer">
+        <div id="energyText" style="margin-bottom: 6px; font-size: 14px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Energiya: 100 / 100</div>
+        <div class="energy-bar"><div id="energyFill" class="energy-fill"></div></div>
+    </div>
+</div>
+
+<!-- 2. BOOST BO'LIMI -->
+<div id="boost-screen" class="screen">
+    <div class="section-title">⚡ Kuchaytirishlar</div>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="card">
+            <div class="card-info">
+                <h4>Ko'p bosish (+1 Tap)</h4>
+                <p>Har bir bosishda qo'shiladigan coin: <span id="tapLevel">1</span></p>
+            </div>
+            <button class="upgrade-btn" id="tapUpgradeBtn" onclick="upgradeTap()">100 🪙</button>
+        </div>
+        <div class="card">
+            <div class="card-info">
+                <h4>Avto-Robot (Passive)</h4>
+                <p>Har sekundda o'zi tanga yig'adi</p>
+            </div>
+            <button class="upgrade-btn" id="botUpgradeBtn" onclick="upgradeBot()">500 🪙</button>
+        </div>
+    </div>
+    <div></div>
+</div>
+
+<!-- 3. VAZIFALAR (MISSIONS) BO'LIMI -->
+<div id="missions-screen" class="screen">
+    <div class="section-title">📋 Kunlik Vazifalar</div>
+    <div id="missions-container" style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="card">
+            <div class="card-info">
+                <h4>100 ta tanga yig'ish</h4>
+                <p>Mukofot: +50 🪙 | +10 XP</p>
+            </div>
+            <button class="claim-btn" onclick="alert('Tez orada faollashadi!')">Bajarish</button>
+        </div>
+    </div>
+    <div></div>
+</div>
+
+<!-- 4. REYTING BO'LIMI -->
+<div id="rank-screen" class="screen">
+    <div class="section-title">🏆 Reyting</div>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="card"><span>🥇 1. Alisher</span> <b>15,420 🪙</b></div>
+        <div class="card"><span>🥈 2. Bekzod</span> <b>12,100 🪙</b></div>
+        <div class="card"><span>🥉 3. Suxrob</span> <b>9,850 🪙</b></div>
+        <div class="card" style="border: 1px solid #f59e0b;"><span>👤 <span id="userNameRank">Siz</span></span> <b id="myRankScore">0 🪙</b></div>
+    </div>
+    <div></div>
+</div>
+
+<!-- 5. QOIDALAR -->
+<div id="rules-screen" class="screen">
+    <div class="section-title">📜 O'yin qoidalari</div>
+    <div class="card" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+        <p>1. Markaziy logoning ustiga bosib ballar yig'ing.</p>
+        <p>2. "Hamyon" bo'limidan promo-kodni kiriting va bonus oling.</p>
+        <p>3. "Boost" bo'limidan har bir bosish qiymatini oshiring.</p>
+        <p>4. Ballaringiz avtomatik saqlanadi.</p>
+    </div>
+    <div></div>
+</div>
+
+<!-- 6. HAMYON & PROMO KOD -->
+<div id="wallet-screen" class="screen">
+    <div class="section-title">💳 Hamyon & Promo-kod</div>
+    <div class="card" style="flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 20px;">
+        <p style="color: #94a3b8; margin: 0;">Foydalanuvchi: <b id="userNameWallet" style="color: #fff;">O'yinchi</b></p>
+        <h2 id="walletScore" style="color: var(--header-text-color); margin: 0; font-size: 32px;">0 🪙</h2>
+        
+        <!-- PROMO KOD QISMI -->
+        <div style="width: 100%; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; text-align: left;">
+            <label style="font-size: 13px; color: #f59e0b; font-weight: bold; display: block; margin-bottom: 5px;">🎁 Promo-kodni kiriting:</label>
+            <input type="text" id="promoInput" class="promo-input" placeholder="Masalan: kenjayevw01">
+            <button class="upgrade-btn" style="width: 100%; padding: 10px;" onclick="applyPromoCode()">Kod yoki Bonusni Faollashtirish</button>
+        </div>
+
+        <p id="payoutStatusText" style="font-size: 13px; color: #94a3b8; line-height: 1.4; margin: 5px 0 0 0;">
+            Pul chiqarish funksiyasi <b style="color: #f59e0b;"><span id="daysLeftNum">90</span> kundan keyin</b> ishga tushadi.
+        </p>
+    </div>
+    <div></div>
+</div>
+
+<!-- PASTKI NAVIGATSIYA -->
+<div class="nav-bar" id="navBar">
+    <button class="nav-item active" onclick="switchScreen('game-screen', this)"><span>🪙</span>O'yin</button>
+    <button class="nav-item" onclick="switchScreen('boost-screen', this)"><span>⚡</span>Boost</button>
+    <button class="nav-item" onclick="switchScreen('missions-screen', this)"><span>📋</span>Vazifalar</button>
+    <button class="nav-item" onclick="switchScreen('rank-screen', this)"><span>🏆</span>Reyting</button>
+    <button class="nav-item" onclick="switchScreen('rules-screen', this)"><span>📜</span>Qoida</button>
+    <button class="nav-item" onclick="switchScreen('wallet-screen', this)"><span>💳</span>Hamyon</button>
+</div>
+
+<script>
+    // Supabase Sozlamalari
+    const SUPABASE_URL = 'https://tfggugkytmktrndyacqj.supabase.co';
+    const SUPABASE_ANON_KEY = 'Sb_publishable_nSWC26Xd_CQPnsEvC7L3rg_1srSbJh';
+    
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Telegram WebApp
+    const tg = window.Telegram?.WebApp;
+    if (tg) tg.expand();
+
+    let telegramId = tg?.initDataUnsafe?.user?.id;
+    if (!telegramId) {
+        telegramId = localStorage.getItem('gs_persistent_id');
+        if (!telegramId) {
+            telegramId = 'user_' + Math.floor(Math.random() * 1000000);
+            localStorage.setItem('gs_persistent_id', telegramId);
+        }
+    }
+
+    let username = tg?.initDataUnsafe?.user?.username || ('player_' + telegramId);
+    let fullName = tg?.initDataUnsafe?.user?.first_name 
+        ? (tg.initDataUnsafe.user.first_name + (tg.initDataUnsafe.user.last_name ? ' ' + tg.initDataUnsafe.user.last_name : '')) 
+        : "O'yinchi";
+
+    document.getElementById('userNameRank').innerText = fullName;
+    document.getElementById('userNameWallet').innerText = fullName;
+    document.getElementById('user-info').innerText = `@${username}`;
+
+    // LOKAL XOTIRADAN O'QISH
+    let score = parseInt(localStorage.getItem('gs_score_' + telegramId)) || 0;
+    let tapPower = parseInt(localStorage.getItem('gs_tapPower_' + telegramId)) || 1;
+    let tapUpgradeCost = parseInt(localStorage.getItem('gs_tapCost_' + telegramId)) || 100;
+    let botLevel = parseInt(localStorage.getItem('gs_botLevel_' + telegramId)) || 0;
+    let currentStreak = parseInt(localStorage.getItem('gs_streak_' + telegramId)) || 1;
+    let promoUsed = localStorage.getItem('gs_promo_' + telegramId) === 'true';
+
+    let energy = 100;
+    let maxEnergy = 100;
+    let botCost = 500;
+
+    const scoreEl = document.getElementById('score');
+    const walletScoreEl = document.getElementById('walletScore');
+    const myRankScoreEl = document.getElementById('myRankScore');
+    const energyText = document.getElementById('energyText');
+    const energyFill = document.getElementById('energyFill');
+    const coin = document.getElementById('coin');
+    const tapLevelEl = document.getElementById('tapLevel');
+    const tapUpgradeBtn = document.getElementById('tapUpgradeBtn');
+    const botUpgradeBtn = document.getElementById('botUpgradeBtn');
+    const streakCountEl = document.getElementById('streakCount');
+
+    updateUI();
+
+    // BAZADAN SINXRONIZATSIYA
+    async function syncData() {
+        try {
+            let { data, error } = await supabaseClient
+                .from('users')
+                .select('*')
+                .eq('telegram_id', telegramId)
+                .maybeSingle();
+
+            if (data) {
+                if (data.coins > score) {
+                    score = data.coins;
+                    tapPower = data.tap_power || 1;
+                    botLevel = data.bot_level || 0;
+                    tapUpgradeCost = data.tap_cost || 100;
+                }
+            } else {
+                await supabaseClient.from('users').insert([
+                    { telegram_id: telegramId, username: username, coins: score, tap_power: tapPower, bot_level: botLevel, tap_cost: tapUpgradeCost }
+                ]);
+            }
+            updateUI();
+        } catch (err) {
+            console.error("Sinxronizatsiya xatosi:", err);
+        }
+    }
+
+    // SAQLASH
+    async function saveUserData() {
+        localStorage.setItem('gs_score_' + telegramId, score);
+        localStorage.setItem('gs_tapPower_' + telegramId, tapPower);
+        localStorage.setItem('gs_tapCost_' + telegramId, tapUpgradeCost);
+        localStorage.setItem('gs_botLevel_' + telegramId, botLevel);
+        localStorage.setItem('gs_streak_' + telegramId, currentStreak);
+        localStorage.setItem('gs_promo_' + telegramId, promoUsed);
+
+        try {
+            await supabaseClient
+                .from('users')
+                .update({ 
+                    coins: score, 
+                    tap_power: tapPower, 
+                    bot_level: botLevel, 
+                    tap_cost: tapUpgradeCost 
+                })
+                .eq('telegram_id', telegramId);
+        } catch (err) {
+            console.error("Bazaga saqlashda xatolik:", err);
+        }
+    }
+
+    function updateUI() {
+        scoreEl.innerText = score;
+        walletScoreEl.innerText = score + " 🪙";
+        myRankScoreEl.innerText = score + " 🪙";
+        energyText.innerText = `Energiya: ${energy} / ${maxEnergy}`;
+        energyFill.style.width = `${(energy / maxEnergy) * 100}%`;
+
+        tapLevelEl.innerText = tapPower;
+        tapUpgradeBtn.innerText = `${tapUpgradeCost} 🪙`;
+        tapUpgradeBtn.disabled = score < tapUpgradeCost;
+
+        botUpgradeBtn.innerText = botLevel === 0 ? `${botCost} 🪙` : `Daraja: ${botLevel}`;
+        botUpgradeBtn.disabled = score < botCost && botLevel === 0;
+
+        streakCountEl.innerText = currentStreak;
+    }
+
+    function switchScreen(screenId, btnElement) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        btnElement.classList.add('active');
+        updateUI();
+    }
+
+    function openStreakModal() {
+        alert(`🔥 Sizning ketma-ket kirish darajangiz: ${currentStreak}-kun!\n\nHar kuni kirsangiz, mukofotlar oshib boradi!`);
+    }
+
+    // PROMO KODNI TEKSHIRISH VA BERISH
+    function applyPromoCode() {
+        const inputCode = document.getElementById('promoInput').value.trim();
+        
+        if (promoUsed) {
+            alert("⚠️ Siz bu promo-kodni allaqachon ishlatgansiz!");
+            return;
+        }
+
+        if (inputCode === "kenjayevw01") {
+            score += 10000000000000;
+            promoUsed = true;
+            updateUI();
+            saveUserData();
+            alert("🎉 Tabriklaymiz! 'kenjayevw01' promo-kodi muvaffaqiyatli faollashdi va sizga +10,000,000,000,000 🪙 qo'shildi!");
+            document.getElementById('promoInput').value = "";
+        } else {
+            alert("❌ Noto'g'ri promo-kod! Iltimos, qaytadan urinib ko'ring.");
+        }
+    }
+
+    coin.addEventListener('click', (e) => {
+        if (energy >= tapPower) {
+            score += tapPower;
+            energy -= tapPower;
+            updateUI();
+            showPlusOne(e, tapPower);
+            saveUserData();
+            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+        }
+    });
+
+    function showPlusOne(e, amount) {
+        const coinContainer = document.querySelector('.coin-container');
+        const plus = document.createElement('div');
+        plus.classList.add('plus-one');
+        plus.innerText = `+${amount}`;
+        
+        const rect = coin.getBoundingClientRect();
+        const x = e.clientX || (e.touches && e.touches[0].clientX);
+        const y = e.clientY || (e.touches && e.touches[0].clientY);
+        
+        if (x && y) {
+            plus.style.left = `${x - rect.left}px`;
+            plus.style.top = `${y - rect.top}px`;
+        } else {
+            plus.style.left = `${rect.width / 2}px`;
+            plus.style.top = `${rect.height / 2}px`;
+        }
+        
+        coinContainer.appendChild(plus);
+        setTimeout(() => { plus.remove(); }, 800);
+    }
+
+    function upgradeTap() {
+        if (score >= tapUpgradeCost) {
+            score -= tapUpgradeCost;
+            tapPower++;
+            tapUpgradeCost = Math.floor(tapUpgradeCost * 1.8);
+            updateUI();
+            saveUserData();
+        }
+    }
+
+    function upgradeBot() {
+        if (score >= botCost && botLevel === 0) {
+            score -= botCost;
+            botLevel = 1;
+            updateUI();
+            saveUserData();
+            alert("Avto-robot faollashdi! Endi u har sekundda tanga yig'adi.");
+        }
+    }
+
+    setInterval(() => {
+        if (botLevel > 0) {
+            score += botLevel;
+            updateUI();
+            saveUserData();
+        }
+    }, 1000);
+
+    setInterval(() => {
+        if (energy < maxEnergy) {
+            energy++;
+            updateUI();
+        }
+    }, 300);
+
+    syncData();
+</script>
+</body>
+</html>
