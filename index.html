@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coin Game - Cyber Luxury</title>
+<title>Coin Game - Cyber Luxury & Level System</title>
 <!-- Telegram Web App Skripti -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <!-- Supabase Kutubxonasi -->
@@ -51,26 +51,47 @@ body {
 
 .header { padding: 10px; position: relative; text-align: center; margin-top: 5px; }
 #score { 
-  font-size: 40px; 
+  font-size: 36px; 
   font-weight: 800; 
-  margin: 4px 0; 
+  margin: 2px 0; 
   color: var(--electric-cyan); 
   text-shadow: 0 0 20px rgba(34, 211, 238, 0.4); 
   letter-spacing: 1px;
+}
+
+/* SEASON & LEVEL BADGES */
+.badges-container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
 }
 
 .season-badge {
     display: inline-block;
     background: rgba(147, 51, 234, 0.15);
     border: 1px solid var(--primary-purple);
-    padding: 4px 12px;
+    padding: 3px 10px;
     border-radius: 12px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--neon-violet);
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    margin-bottom: 8px;
+}
+
+.level-badge {
+    display: inline-block;
+    background: rgba(34, 211, 238, 0.15);
+    border: 1px solid var(--electric-cyan);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--electric-cyan);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .streak-badge {
@@ -92,10 +113,41 @@ body {
     z-index: 10;
 }
 
+/* XP PROGRESS BAR IN HEADER */
+.xp-header-container {
+    width: 100%;
+    max-width: 280px;
+    margin: 4px auto 0 auto;
+    text-align: left;
+}
+.xp-header-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--secondary-text);
+    margin-bottom: 3px;
+    font-weight: 600;
+}
+.xp-bar-mini {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-color);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+.xp-fill-mini {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-purple), var(--electric-cyan));
+    box-shadow: 0 0 8px rgba(180, 92, 255, 0.6);
+    transition: width 0.3s ease;
+}
+
 .coin-container { display: flex; justify-content: center; align-items: center; flex-direction: column; flex-grow: 1; position: relative; width: 100%; height: 100%; }
 #coin { 
-    width: 210px; 
-    height: 210px; 
+    width: 200px; 
+    height: 200px; 
     background: radial-gradient(circle, #191B2D 0%, #080910 85%); 
     border-radius: 50%; 
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), 
@@ -119,7 +171,7 @@ body {
 }
 #coin img { width: 100%; height: 100%; object-fit: cover; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.8)); }
 
-.plus-one { position: absolute; font-size: 28px; font-weight: 800; color: var(--electric-cyan); text-shadow: 0 0 10px rgba(34, 211, 238, 0.6); pointer-events: none; animation: fly 0.8s cubic-bezier(0.25, 1, 0.5, 1); opacity: 0; }
+.plus-one { position: absolute; font-size: 26px; font-weight: 800; color: var(--electric-cyan); text-shadow: 0 0 10px rgba(34, 211, 238, 0.6); pointer-events: none; animation: fly 0.8s cubic-bezier(0.25, 1, 0.5, 1); opacity: 0; }
 @keyframes fly {
   0% { transform: translateY(0) scale(0.8); opacity: 1; }
   100% { transform: translateY(-80px) scale(1.2); opacity: 0; }
@@ -149,27 +201,92 @@ body {
 
 .promo-input { width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--main-text); font-size: 14px; margin-bottom: 10px; outline: none; transition: border-color 0.2s; }
 .promo-input:focus { border-color: var(--electric-cyan); box-shadow: 0 0 10px rgba(34, 211, 238, 0.2); }
+
+/* LEVEL UP MODAL STYLES */
+#levelUpModal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(8, 9, 16, 0.85);
+    backdrop-filter: blur(12px);
+    z-index: 999999;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    animation: fadeIn 0.3s ease;
+}
+.modal-content {
+    background: var(--card-bg);
+    border: 2px solid var(--neon-violet);
+    padding: 30px 24px;
+    border-radius: 20px;
+    width: 85%;
+    max-width: 340px;
+    text-align: center;
+    box-shadow: 0 0 50px rgba(180, 92, 255, 0.4), inset 0 0 20px rgba(147, 51, 234, 0.2);
+}
+.modal-content h2 {
+    color: var(--electric-cyan);
+    margin: 0 0 10px 0;
+    font-size: 24px;
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+}
+.modal-content p {
+    color: var(--main-text);
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+.new-level-badge-box {
+    display: inline-block;
+    background: rgba(147, 51, 234, 0.2);
+    border: 1px solid var(--neon-violet);
+    padding: 8px 16px;
+    border-radius: 14px;
+    font-weight: 800;
+    color: var(--neon-violet);
+    font-size: 16px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
 </style>
 </head>
 <body>
 
+<!-- 1. O'YIN EKRANI -->
 <div id="game-screen" class="screen active">
     <div class="header">
-        <div class="season-badge">Season 01 • Cyber Luxury</div>
+        <div class="badges-container">
+            <div class="season-badge">Season 01</div>
+            <div class="level-badge" id="headerLevelBadge">Level 1 • Rookie</div>
+        </div>
         <div class="streak-badge" onclick="openStreakModal()">
             🔥 <span id="streakCount">1</span> kun
         </div>
         <div id="score">0</div>
         <div id="user-info" style="color: var(--secondary-text); font-size: 13px; font-weight: 500;">Yuklanmoqda...</div>
+        
+        <!-- XP Progress Bar in Header -->
+        <div class="xp-header-container">
+            <div class="xp-header-info">
+                <span>XP: <b id="headerXpText">0</b></span>
+                <span id="headerNextXpText">Keyingi: 100 XP</span>
+            </div>
+            <div class="xp-bar-mini"><div id="xpFillMini" class="xp-fill-mini"></div></div>
+        </div>
     </div>
     <div class="coin-container">
         <div id="coin">
-            <!-- Rasm nomi o'zgartirildi -->
             <img src="Screenshot_20261106_021337_ChatGPT.jpg" alt="Logo" />
         </div>
     </div>
 </div>
 
+<!-- 2. BOOST BO'LIMI -->
 <div id="boost-screen" class="screen">
     <div class="section-title">⚡ Kuchaytirishlar</div>
     <div class="card">
@@ -188,6 +305,7 @@ body {
     </div>
 </div>
 
+<!-- 3. VAZIFALAR (MISSIONS) BO'LIMI -->
 <div id="missions-screen" class="screen">
     <div class="section-title">📋 Kunlik Vazifalar</div>
     <div class="card">
@@ -199,6 +317,7 @@ body {
     </div>
 </div>
 
+<!-- 4. REYTING BO'LIMI -->
 <div id="rank-screen" class="screen">
     <div class="section-title">🏆 Reyting jadvali</div>
     <div class="card" style="border-left: 4px solid #F59E0B;"><span>🥇 1. Alisher</span> <b style="color: #F59E0B;">15,420 🪙</b></div>
@@ -207,54 +326,79 @@ body {
     <div class="card" style="border: 1px solid var(--electric-cyan); background: rgba(34, 211, 238, 0.05);"><span>👤 <span id="userNameRank" style="font-weight: 700;">Siz</span></span> <b id="myRankScore" style="color: var(--electric-cyan);">0 🪙</b></div>
 </div>
 
+<!-- 5. QOIDALAR -->
 <div id="rules-screen" class="screen">
     <div class="section-title">📜 O'yin qoidalari</div>
     <div class="card" style="flex-direction: column; align-items: flex-start; gap: 10px;">
-        <p style="margin:0; color: var(--secondary-text);">1. Markaziy logoning ustiga bosib aktiv ballar yig'ing.</p>
-        <p style="margin:0; color: var(--secondary-text);">2. "Hamyon" bo'limidan promo-kodni kiriting va eksklyuziv bonus oling.</p>
-        <p style="margin:0; color: var(--secondary-text);">3. "Boost" bo'limidan bosish quvvati va avto-robotni kuchaytiring.</p>
+        <p style="margin:0; color: var(--secondary-text);">1. Markaziy logoning ustiga bosib aktiv ballar va XP yig'ing.</p>
+        <p style="margin:0; color: var(--secondary-text);">2. XP orqali darajangizni oshiring va yangi unvonlarga ega bo'ling.</p>
+        <p style="margin:0; color: var(--secondary-text);">3. "Hamyon" bo'limidan promo-kodni kiriting va eksklyuziv bonus oling.</p>
         <p style="margin:0; color: var(--secondary-text);">4. Barcha natijalar bulutli bazada avtomatik saqlanadi.</p>
     </div>
 </div>
 
+<!-- 6. HAMYON & PROMO KOD & PROFIL -->
 <div id="wallet-screen" class="screen">
-    <div class="section-title">💳 Hamyon & Promo-kod</div>
-    <div class="card" style="flex-direction: column; align-items: center; text-align: center; gap: 14px;">
+    <div class="section-title">💳 Profil & Hamyon</div>
+    <div class="card" style="flex-direction: column; align-items: center; text-align: center; gap: 12px;">
         <p style="color: var(--secondary-text); margin: 0; font-size: 13px;">Foydalanuvchi: <b id="userNameWallet" style="color: var(--main-text);">O'yinchi</b></p>
-        <h2 id="walletScore" style="color: var(--electric-cyan); margin: 0; font-size: 32px; font-weight: 800;">0 🪙</h2>
+        <h2 id="walletScore" style="color: var(--electric-cyan); margin: 0; font-size: 30px; font-weight: 800;">0 🪙</h2>
         
-        <div style="width: 100%; border-top: 1px solid var(--border-color); padding-top: 14px; text-align: left;">
+        <!-- PROFIL LEVEL & XP STATS -->
+        <div style="width: 100%; background: var(--bg-color); padding: 12px; border-radius: 12px; border: 1px solid var(--border-color); text-align: left;">
+            <p style="margin: 0 0 6px 0; font-size: 13px; color: var(--neon-violet); font-weight: 700;">⭐ Daraja va Tajriba (XP):</p>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--main-text); margin-bottom: 4px;">
+                <span>Unvon: <b id="profileLevelName" style="color: var(--electric-cyan);">Rookie</b></span>
+                <span>Level: <b id="profileLevelNum">1</b></span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--secondary-text); margin-bottom: 6px;">
+                <span>Jami XP: <b id="profileTotalXp">0</b></span>
+                <span>Talab: <b id="profileNextXp">100 XP</b></span>
+            </div>
+        </div>
+
+        <div style="width: 100%; border-top: 1px solid var(--border-color); padding-top: 12px; text-align: left;">
             <label style="font-size: 12px; color: var(--neon-violet); font-weight: 700; display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">🎁 Promo-kodni kiriting:</label>
             <input type="text" id="promoInput" class="promo-input" placeholder="Promo-kodni kiriting...">
             <button class="upgrade-btn" style="width: 100%; padding: 12px;" onclick="applyPromoCode()">Faollashtirish (+10 Trln)</button>
         </div>
-
-        <p id="payoutStatusText" style="font-size: 12px; color: var(--secondary-text); margin: 0;">
-            Pul chiqarish funksiyasi <b style="color: var(--electric-cyan);"><span id="daysLeftNum">90</span> kundan keyin</b> ishga tushadi.
-        </p>
     </div>
 </div>
 
+<!-- O'YIN EKRANI UCHUN ENERGIYA PANELI -->
 <div class="footer" id="gameFooter">
     <div id="energyText" style="margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--secondary-text);">Energiya: 100 / 100</div>
     <div class="energy-bar"><div id="energyFill" class="energy-fill"></div></div>
 </div>
 
+<!-- PASTKI NAVIGATSIYA MENYUSI -->
 <div class="nav-bar" id="navBar">
     <button class="nav-item active" onclick="switchScreen('game-screen', this)"><span>🪙</span>O'yin</button>
     <button class="nav-item" onclick="switchScreen('boost-screen', this)"><span>⚡</span>Boost</button>
     <button class="nav-item" onclick="switchScreen('missions-screen', this)"><span>📋</span>Vazifalar</button>
     <button class="nav-item" onclick="switchScreen('rank-screen', this)"><span>🏆</span>Reyting</button>
     <button class="nav-item" onclick="switchScreen('rules-screen', this)"><span>📜</span>Qoida</button>
-    <button class="nav-item" onclick="switchScreen('wallet-screen', this)"><span>💳</span>Hamyon</button>
+    <button class="nav-item" onclick="switchScreen('wallet-screen', this)"><span>💳</span>Profil</button>
+</div>
+
+<!-- LEVEL UP TABRIK OYNASI -->
+<div id="levelUpModal">
+    <div class="modal-content">
+        <h2>🎉 LEVEL UP!</h2>
+        <p>Tabriklaymiz! Siz yangi darajaga ko'tarildingiz:</p>
+        <div class="new-level-badge-box" id="modalBadgeText">Level 2 • Rookie</div>
+        <button class="upgrade-btn" style="width: 100%; padding: 12px;" onclick="closeLevelUpModal()">Davom etish</button>
+    </div>
 </div>
 
 <script>
+    // Supabase Sozlamalari
     const SUPABASE_URL = 'https://tfggugkytmktrndyacqj.supabase.co';
     const SUPABASE_ANON_KEY = 'Sb_publishable_nSWC26Xd_CQPnsEvC7L3rg_1srSbJh';
     
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Telegram WebApp
     const tg = window.Telegram?.WebApp;
     if (tg) tg.expand();
 
@@ -276,6 +420,7 @@ body {
     document.getElementById('userNameWallet').innerText = fullName;
     document.getElementById('user-info').innerText = `@${username}`;
 
+    // LOKAL XOTIRADAN O'QISH (Coin va XP/Level)
     let score = parseInt(localStorage.getItem('gs_score_' + telegramId)) || 0;
     let tapPower = parseInt(localStorage.getItem('gs_tapPower_' + telegramId)) || 1;
     let tapUpgradeCost = parseInt(localStorage.getItem('gs_tapCost_' + telegramId)) || 100;
@@ -284,9 +429,14 @@ body {
     let currentStreak = parseInt(localStorage.getItem('gs_streak_' + telegramId)) || 1;
     let promoUsed = localStorage.getItem('gs_promo_' + telegramId) === 'true';
 
+    // XP va Level o'zgaruvchilari
+    let xp = parseInt(localStorage.getItem('gs_xp_' + telegramId)) || 0;
+    let level = parseInt(localStorage.getItem('gs_level_' + telegramId)) || 1;
+
     let energy = 100;
     let maxEnergy = 100;
 
+    // UI Elementlar
     const scoreEl = document.getElementById('score');
     const walletScoreEl = document.getElementById('walletScore');
     const myRankScoreEl = document.getElementById('myRankScore');
@@ -301,8 +451,41 @@ body {
     const streakCountEl = document.getElementById('streakCount');
     const gameFooter = document.getElementById('gameFooter');
 
+    // Level va XP UI Elementlari
+    const headerLevelBadge = document.getElementById('headerLevelBadge');
+    const headerXpText = document.getElementById('headerXpText');
+    const headerNextXpText = document.getElementById('headerNextXpText');
+    const xpFillMini = document.getElementById('xpFillMini');
+    const profileLevelName = document.getElementById('profileLevelName');
+    const profileLevelNum = document.getElementById('profileLevelNum');
+    const profileTotalXp = document.getElementById('profileTotalXp');
+    const profileNextXp = document.getElementById('profileNextXp');
+    const levelUpModal = document.getElementById('levelUpModal');
+    const modalBadgeText = document.getElementById('modalBadgeText');
+
     updateUI();
 
+    // UNVONLAR (RANKS) FUNKSIYASI (1-100)
+    function getLevelRankTitle(lvl) {
+        if (lvl >= 91) return "Immortal";
+        if (lvl >= 76) return "Legend";
+        if (lvl >= 61) return "Grandmaster";
+        if (lvl >= 51) return "Master";
+        if (lvl >= 41) return "Diamond";
+        if (lvl >= 31) return "Platinum";
+        if (lvl >= 21) return "Gold";
+        if (lvl >= 11) return "Silver";
+        if (lvl >= 6) return "Bronze";
+        return "Rookie";
+    }
+
+    // Har bir daraja uchun talab qilinadigan XP formulasi
+    function getRequiredXpForNextLevel(lvl) {
+        if (lvl >= 100) return "MAX";
+        return lvl * 100; // Har bir level uchun 100 XP ga oshib boradi
+    }
+
+    // BAZADAN SINXRONIZATSIYA
     async function syncData() {
         try {
             let { data, error } = await supabaseClient
@@ -318,9 +501,13 @@ body {
                     botLevel = data.bot_level || 0;
                     tapUpgradeCost = data.tap_cost || 100;
                 }
+                if (data.xp && data.xp > xp) {
+                    xp = data.xp;
+                    level = data.level || 1;
+                }
             } else {
                 await supabaseClient.from('users').insert([
-                    { telegram_id: telegramId, username: username, coins: score, tap_power: tapPower, bot_level: botLevel, tap_cost: tapUpgradeCost }
+                    { telegram_id: telegramId, username: username, coins: score, tap_power: tapPower, bot_level: botLevel, tap_cost: tapUpgradeCost, xp: xp, level: level }
                 ]);
             }
             updateUI();
@@ -329,6 +516,7 @@ body {
         }
     }
 
+    // SAQLASH
     async function saveUserData() {
         localStorage.setItem('gs_score_' + telegramId, score);
         localStorage.setItem('gs_tapPower_' + telegramId, tapPower);
@@ -337,6 +525,8 @@ body {
         localStorage.setItem('gs_botCost_' + telegramId, botCost);
         localStorage.setItem('gs_streak_' + telegramId, currentStreak);
         localStorage.setItem('gs_promo_' + telegramId, promoUsed);
+        localStorage.setItem('gs_xp_' + telegramId, xp);
+        localStorage.setItem('gs_level_' + telegramId, level);
 
         try {
             await supabaseClient
@@ -345,12 +535,42 @@ body {
                     coins: score, 
                     tap_power: tapPower, 
                     bot_level: botLevel, 
-                    tap_cost: tapUpgradeCost 
+                    tap_cost: tapUpgradeCost,
+                    xp: xp,
+                    level: level
                 })
                 .eq('telegram_id', telegramId);
         } catch (err) {
             console.error("Bazaga saqlashda xatolik:", err);
         }
+    }
+
+    // XP QO'SHISH VA LEVEL TEKSHIRISH
+    function addXp(amount) {
+        if (level >= 100) return; // Max level
+
+        xp += amount;
+        let requiredXp = level * 100;
+
+        if (xp >= requiredXp && level < 100) {
+            xp -= requiredXp;
+            level++;
+            triggerLevelUpAnimation();
+        }
+        updateUI();
+    }
+
+    function triggerLevelUpAnimation() {
+        let rankName = getLevelRankTitle(level);
+        modalBadgeText.innerText = `Level ${level} • ${rankName}`;
+        levelUpModal.style.display = 'flex';
+        if (window.Telegram?.WebApp?.HapticFeedback) {
+            window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+        }
+    }
+
+    function closeLevelUpModal() {
+        levelUpModal.style.display = 'none';
     }
 
     function updateUI() {
@@ -370,6 +590,21 @@ body {
         botUpgradeBtn.disabled = score < botCost;
 
         streakCountEl.innerText = currentStreak;
+
+        // Level & XP UI update
+        let rankName = getLevelRankTitle(level);
+        let reqXp = level >= 100 ? xp : (level * 100);
+        let xpPercent = level >= 100 ? 100 : Math.min(100, (xp / reqXp) * 100);
+
+        headerLevelBadge.innerText = `Level ${level} • ${rankName}`;
+        headerXpText.innerText = xp;
+        headerNextXpText.innerText = level >= 100 ? "MAX LEVEL" : `Keyingi: ${reqXp} XP`;
+        xpFillMini.style.width = `${xpPercent}%`;
+
+        profileLevelName.innerText = rankName;
+        profileLevelNum.innerText = level;
+        profileTotalXp.innerText = xp;
+        profileNextXp.innerText = level >= 100 ? "MAX" : `${reqXp} XP`;
     }
 
     function switchScreen(screenId, btnElement) {
@@ -412,10 +647,12 @@ body {
         }
     }
 
+    // COIN CLICK EVENT (Coin + XP qo'shiladi)
     coin.addEventListener('click', (e) => {
         if (energy >= tapPower) {
             score += tapPower;
             energy -= tapPower;
+            addXp(1); // Har bir tap uchun +1 XP
             updateUI();
             showPlusOne(e, tapPower);
             saveUserData();
@@ -469,6 +706,7 @@ body {
     setInterval(() => {
         if (botLevel > 0) {
             score += botLevel;
+            addXp(Math.max(1, Math.floor(botLevel / 2))); // Avto robot ham XP beradi
             updateUI();
             saveUserData();
         }
