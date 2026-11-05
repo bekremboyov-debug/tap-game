@@ -420,7 +420,7 @@ body {
     document.getElementById('userNameWallet').innerText = fullName;
     document.getElementById('user-info').innerText = `@${username}`;
 
-    // LOKAL XOTIRADAN O'QISH (Coin va XP/Level)
+    // LOKAL XOTIRADAN O'QISH
     let score = parseInt(localStorage.getItem('gs_score_' + telegramId)) || 0;
     let tapPower = parseInt(localStorage.getItem('gs_tapPower_' + telegramId)) || 1;
     let tapUpgradeCost = parseInt(localStorage.getItem('gs_tapCost_' + telegramId)) || 100;
@@ -429,7 +429,6 @@ body {
     let currentStreak = parseInt(localStorage.getItem('gs_streak_' + telegramId)) || 1;
     let promoUsed = localStorage.getItem('gs_promo_' + telegramId) === 'true';
 
-    // XP va Level o'zgaruvchilari
     let xp = parseInt(localStorage.getItem('gs_xp_' + telegramId)) || 0;
     let level = parseInt(localStorage.getItem('gs_level_' + telegramId)) || 1;
 
@@ -451,7 +450,6 @@ body {
     const streakCountEl = document.getElementById('streakCount');
     const gameFooter = document.getElementById('gameFooter');
 
-    // Level va XP UI Elementlari
     const headerLevelBadge = document.getElementById('headerLevelBadge');
     const headerXpText = document.getElementById('headerXpText');
     const headerNextXpText = document.getElementById('headerNextXpText');
@@ -464,6 +462,26 @@ body {
     const modalBadgeText = document.getElementById('modalBadgeText');
 
     updateUI();
+
+    // RAQAMLARNI IXCHAMLASH (10,000 dan oshsa 10k, 1M, 1B shakliga o'tadi)
+    function formatNumber(num) {
+        if (num < 10000) {
+            return num.toLocaleString(); // 10,000 dan kichik bo'lsa to'liq ko'rsatadi
+        }
+        if (num >= 1e12) {
+            return (num / 1e12).toFixed(1) + 'T';
+        }
+        if (num >= 1e9) {
+            return (num / 1e9).toFixed(1) + 'B';
+        }
+        if (num >= 1e6) {
+            return (num / 1e6).toFixed(1) + 'M';
+        }
+        if (num >= 1e3) {
+            return (num / 1e3).toFixed(1) + 'k';
+        }
+        return num.toString();
+    }
 
     // UNVONLAR (RANKS) FUNKSIYASI (1-100)
     function getLevelRankTitle(lvl) {
@@ -479,10 +497,9 @@ body {
         return "Rookie";
     }
 
-    // Har bir daraja uchun talab qilinadigan XP formulasi
     function getRequiredXpForNextLevel(lvl) {
         if (lvl >= 100) return "MAX";
-        return lvl * 100; // Har bir level uchun 100 XP ga oshib boradi
+        return lvl * 100;
     }
 
     // BAZADAN SINXRONIZATSIYA
@@ -545,9 +562,8 @@ body {
         }
     }
 
-    // XP QO'SHISH VA LEVEL TEKSHIRISH
     function addXp(amount) {
-        if (level >= 100) return; // Max level
+        if (level >= 100) return;
 
         xp += amount;
         let requiredXp = level * 100;
@@ -574,24 +590,25 @@ body {
     }
 
     function updateUI() {
-        scoreEl.innerText = score;
-        walletScoreEl.innerText = score + " 🪙";
-        myRankScoreEl.innerText = score + " 🪙";
+        // Raqamlarni formatlash (10k, 1M va hokazo)
+        scoreEl.innerText = formatNumber(score);
+        walletScoreEl.innerText = formatNumber(score) + " 🪙";
+        myRankScoreEl.innerText = formatNumber(score) + " 🪙";
+        
         energyText.innerText = `Energiya: ${energy} / ${maxEnergy}`;
         energyFill.style.width = `${(energy / maxEnergy) * 100}%`;
 
         tapLevelEl.innerText = tapPower;
-        tapUpgradeBtn.innerText = `${tapUpgradeCost} 🪙`;
+        tapUpgradeBtn.innerText = formatNumber(tapUpgradeCost) + " 🪙";
         tapUpgradeBtn.disabled = score < tapUpgradeCost;
 
         botLevelText.innerText = botLevel;
         botIncomeText.innerText = botLevel;
-        botUpgradeBtn.innerText = `${botCost} 🪙`;
+        botUpgradeBtn.innerText = formatNumber(botCost) + " 🪙";
         botUpgradeBtn.disabled = score < botCost;
 
         streakCountEl.innerText = currentStreak;
 
-        // Level & XP UI update
         let rankName = getLevelRankTitle(level);
         let reqXp = level >= 100 ? xp : (level * 100);
         let xpPercent = level >= 100 ? 100 : Math.min(100, (xp / reqXp) * 100);
@@ -647,12 +664,11 @@ body {
         }
     }
 
-    // COIN CLICK EVENT (Coin + XP qo'shiladi)
     coin.addEventListener('click', (e) => {
         if (energy >= tapPower) {
             score += tapPower;
             energy -= tapPower;
-            addXp(1); // Har bir tap uchun +1 XP
+            addXp(1);
             updateUI();
             showPlusOne(e, tapPower);
             saveUserData();
@@ -706,7 +722,7 @@ body {
     setInterval(() => {
         if (botLevel > 0) {
             score += botLevel;
-            addXp(Math.max(1, Math.floor(botLevel / 2))); // Avto robot ham XP beradi
+            addXp(Math.max(1, Math.floor(botLevel / 2)));
             updateUI();
             saveUserData();
         }
