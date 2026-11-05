@@ -80,7 +80,7 @@ body { background: var(--bg-color); background-attachment: fixed; color: var(--t
 <div id="game-screen" class="screen active">
     <div class="header">
         <div id="score">0</div>
-        <div id="user-info" style="color: #94a3b8;">O'yinchi</div>
+        <div id="user-info" style="color: #94a3b8;">Yuklanmoqda...</div>
     </div>
     <div class="coin-container">
         <div id="coin">
@@ -134,7 +134,7 @@ body { background: var(--bg-color); background-attachment: fixed; color: var(--t
         <p>1. Markaziy 3D logoning ustiga bosib ballar yig'ing.</p>
         <p>2. Har bir bosish energiyani sarflaydi. Energiya vaqt o'tishi bilan tiklanadi.</p>
         <p>3. "Boost" bo'limidan har bir bosish qiymatini oshirishingiz mumkin.</p>
-        <p>4. Ballaringiz avtomatik saqlanadi.</p>
+        <p>4. Ballaringiz bazada xavfsiz saqlanadi.</p>
     </div>
     <div></div>
 </div>
@@ -167,14 +167,7 @@ body { background: var(--bg-color); background-attachment: fixed; color: var(--t
     const SUPABASE_URL = 'https://tfggugkytmktrndyacqj.supabase.co';
     const SUPABASE_ANON_KEY = 'Sb_publishable_nSWC26Xd_CQPnsEvC7L3rg_1srSbJh';
     
-    let supabaseClient = null;
-    try {
-        if (window.supabase) {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
-    } catch (e) {
-        console.error("Supabase xatosi:", e);
-    }
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Telegram WebApp
     const tg = window.Telegram?.WebApp;
@@ -190,13 +183,12 @@ body { background: var(--bg-color); background-attachment: fixed; color: var(--t
     document.getElementById('userNameWallet').innerText = fullName;
     document.getElementById('user-info').innerText = `@${username}`;
 
-    // DARXOL LOCALSTORAGE'DAN O'QISH (0 bo'lib qolmasligi uchun)
-    let score = parseInt(localStorage.getItem('gs_score_' + telegramId)) || 0;
+    let score = 0;
     let energy = 100;
     let maxEnergy = 100;
-    let tapPower = parseInt(localStorage.getItem('gs_tapPower_' + telegramId)) || 1;
-    let tapUpgradeCost = parseInt(localStorage.getItem('gs_tapCost_' + telegramId)) || 100;
-    let botLevel = parseInt(localStorage.getItem('gs_botLevel_' + telegramId)) || 0;
+    let tapPower = 1;
+    let tapUpgradeCost = 100;
+    let botLevel = 0;
     let botCost = 500;
 
     const scoreEl = document.getElementById('score');
@@ -209,62 +201,40 @@ body { background: var(--bg-color); background-attachment: fixed; color: var(--t
     const tapUpgradeBtn = document.getElementById('tapUpgradeBtn');
     const botUpgradeBtn = document.getElementById('botUpgradeBtn');
 
-    // UI'ni darhol yangilaymiz
-    updateUI();
+    // 1. O'YIN OCHILGANDA BAZADAN MA'LUMOTNI OLISH
+    async function loadUserData() {
+        let { data, error } = await supabaseClient
+            .from('users')
+            .select('*')
+            .eq('telegram_id', telegramId)
+            .maybeSingle();
 
-    // Bazadan ma'lumotni fonda tekshirib olish va sinxron qilish
-    async function syncWithSupabase() {
-        if (supabaseClient) {
-            try {
-                let { data, error } = await supabaseClient
-                    .from('users')
-                    .select('*')
-                    .eq('telegram_id', telegramId)
-                    .maybeSingle();
-
-                if (data) {
-                    // Agar bazadagi ball ko'p bo'lsa, shuni olamiz
-                    if (data.coins > score) {
-                        score = data.coins;
-                        tapPower = data.tap_power || 1;
-                        botLevel = data.bot_level || 0;
-                        tapUpgradeCost = data.tap_cost || 100;
-                        updateUI();
-                    }
-                } else {
-                    // Bazada yo'q bo'lsa, qo'shamiz
-                    await supabaseClient.from('users').insert([
-                        { telegram_id: telegramId, username: username, coins: score, tap_power: tapPower, bot_level: botLevel, tap_cost: tapUpgradeCost }
-                    ]);
-                }
-            } catch (err) {
-                console.error("Sinxronizatsiya xatosi:", err);
-            }
+        if (data) {
+            score = data.coins || 0;
+            tapPower = data.tap_power || 1;
+            botLevel = data.bot_level || 0;
+            tapUpgradeCost = data.tap_cost || 100;
+        } else {
+            // Agar foydalanuvchi bazada bo'lmasa, yangidan qo'shamiz
+            await supabaseClient.from('users').insert([
+                { telegram_id: telegramId, username: username, coins: 0, tap_power: 1, bot_level: 0, tap_cost: 100 }
+            ]);
+            score = 0;
         }
+        updateUI();
     }
 
-    // Har safar o'zgarganda saqlash
+    // 2. BAZAGA SAQLASH
     async function saveUserData() {
-        localStorage.setItem('gs_score_' + telegramId, score);
-        localStorage.setItem('gs_tapPower_' + telegramId, tapPower);
-        localStorage.setItem('gs_tapCost_' + telegramId, tapUpgradeCost);
-        localStorage.setItem('gs_botLevel_' + telegramId, botLevel);
-
-        if (supabaseClient) {
-            try {
-                await supabaseClient
-                    .from('users')
-                    .update({ 
-                        coins: score, 
-                        tap_power: tapPower, 
-                        bot_level: botLevel, 
-                        tap_cost: tapUpgradeCost 
-                    })
-                    .eq('telegram_id', telegramId);
-            } catch (err) {
-                console.error("Bazaga saqlashda xatolik:", err);
-            }
-        }
+        await supabaseClient
+            .from('users')
+            .update({ 
+                coins: score, 
+                tap_power: tapPower, 
+                bot_level: botLevel, 
+                tap_cost: tapUpgradeCost 
+            })
+            .eq('telegram_id', telegramId);
     }
 
     function updateUI() {
@@ -359,8 +329,8 @@ body { background: var(--bg-color); background-attachment: fixed; color: var(--t
         }
     }, 300);
 
-    // Ishga tushganda bazadan ham tekshirib kelamiz
-    syncWithSupabase();
+    // Dastlab bazadan ma'lumotni yuklab olamiz
+    loadUserData();
 </script>
 </body>
 </html>
