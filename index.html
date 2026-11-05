@@ -7,29 +7,17 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root {
-  --bg-color: #f0f4f8;
-  --text-color: #334155;
-  --header-text-color: #f59e0b;
-  --card-bg: #fff;
-  --nav-bg: #fff;
-  --nav-text: #94a3b8;
-  --nav-active: #f59e0b;
-  --coin-shadow: rgba(245, 158, 11, 0.4);
-}
-
-body.dark {
-  --bg-color: #0f172a;
+  --bg-color: linear-gradient(135deg, #ef4444 0%, #0f172a 100%);
   --text-color: #fff;
   --header-text-color: #f59e0b;
   --card-bg: #1e293b;
   --nav-bg: #1e293b;
   --nav-text: #94a3b8;
   --nav-active: #f59e0b;
-  --coin-shadow: rgba(239, 68, 68, 0.5);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { background: var(--bg-color); color: var(--text-color); font-family: Arial, sans-serif; text-align: center; margin: 0; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden; transition: background 0.3s, color 0.3s; }
+body { background: var(--bg-color); background-attachment: fixed; color: var(--text-color); font-family: Arial, sans-serif; text-align: center; margin: 0; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden; }
 
 .screen { display: none; flex-direction: column; justify-content: space-between; height: 100%; padding: 20px; overflow-y: auto; }
 .screen.active { display: flex; }
@@ -39,45 +27,58 @@ body { background: var(--bg-color); color: var(--text-color); font-family: Arial
 .btn:active { transform: scale(0.95); }
 
 .header { padding: 10px; }
-#score { font-size: 42px; font-weight: bold; margin: 5px 0; color: var(--header-text-color); }
-.coin-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; position: relative; }
-#coin { width: 190px; height: 190px; background: #000; border-radius: 50%; box-shadow: 0 0 30px var(--coin-shadow); display: flex; justify-content: center; align-items: center; cursor: pointer; transition: transform 0.1s; user-select: none; overflow: hidden; border: 2px solid #ef4444; }
-#coin:active { transform: scale(0.92); }
-#coin img { width: 100%; height: 100%; object-fit: cover; }
+#score { font-size: 42px; font-weight: bold; margin: 5px 0; color: var(--header-text-color); text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
-.plus-one { position: absolute; font-size: 24px; font-weight: bold; color: #22c55e; pointer-events: none; animation: fly 0.8s ease-out; opacity: 0; }
+/* 3D Tanga / Logo dizayni */
+.coin-container { display: flex; justify-content: center; align-items: center; flex-grow: 1; position: relative; }
+#coin { 
+    width: 200px; 
+    height: 200px; 
+    background: #000; 
+    border-radius: 50%; 
+    box-shadow: 0 15px 35px rgba(239, 68, 68, 0.6), inset 0 5px 15px rgba(255, 255, 255, 0.2), inset 0 -5px 15px rgba(0, 0, 0, 0.9); 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    cursor: pointer; 
+    transition: transform 0.1s; 
+    user-select: none; 
+    overflow: hidden; 
+    border: 4px solid #ef4444; 
+}
+#coin:active { transform: scale(0.92); }
+#coin img { width: 100%; height: 100%; object-fit: cover; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.8)); }
+
+.plus-one { position: absolute; font-size: 24px; font-weight: bold; color: #22c55e; text-shadow: 0 2px 4px rgba(0,0,0,0.8); pointer-events: none; animation: fly 0.8s ease-out; opacity: 0; }
 @keyframes fly {
   0% { transform: translateY(0); opacity: 1; }
   100% { transform: translateY(-60px); opacity: 0; }
 }
 
 .footer { padding: 10px; }
-.energy-bar { width: 100%; max-width: 300px; height: 14px; background: #334155; border-radius: 7px; margin: 0 auto; overflow: hidden; }
+.energy-bar { width: 100%; max-width: 300px; height: 14px; background: rgba(51, 65, 85, 0.8); border-radius: 7px; margin: 0 auto; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
 .energy-fill { width: 100%; height: 100%; background: #22c55e; transition: width 0.3s; }
 
-.nav-bar { display: flex; justify-content: space-around; background: var(--nav-bg); padding: 10px 0; border-top: 1px solid #334155; transition: background 0.3s; }
+.nav-bar { display: flex; justify-content: space-around; background: rgba(30, 41, 59, 0.9); backdrop-filter: blur(10px); padding: 10px 0; border-top: 1px solid rgba(51, 65, 85, 0.5); }
 .nav-item { background: none; border: none; color: var(--nav-text); font-size: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .nav-item.active { color: var(--nav-active); }
 .nav-item span { font-size: 20px; }
 
 .section-title { font-size: 24px; font-weight: bold; margin-bottom: 15px; color: var(--header-text-color); }
-.card { background: var(--card-bg); padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: left; display: flex; justify-content: space-between; align-items: center; transition: background 0.3s; }
+.card { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(5px); padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: left; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
 .card-info h4 { margin: 0 0 5px 0; font-size: 16px; color: var(--text-color); }
 .card-info p { margin: 0; font-size: 12px; color: #94a3b8; }
-.upgrade-btn { background: #3b82f6; color: #fff; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-.upgrade-btn:disabled { background: #475569; cursor: not-allowed; }
-
-#theme-toggle { position: fixed; top: 10px; right: 10px; background: none; border: none; font-size: 24px; cursor: pointer; z-index: 100; }
+.upgrade-btn { background: #3b82f6; color: #fff; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+.upgrade-btn:disabled { background: #475569; cursor: not-allowed; box-shadow: none; }
 </style>
 </head>
-<body class="dark">
+<body>
 
-<button id="theme-toggle" onclick="toggleTheme()">☀️</button>
-
+<!-- 1. BOSHLANG'ICH EKRAN -->
 <div id="start-screen" class="screen active">
     <div>
-        <h1 style="font-size: 32px; color: var(--header-text-color);">🪙 Tap Coin Game</h1>
-        <p style="color: #94a3b8; max-width: 300px; margin: 0 auto; line-height: 1.5;">
+        <h1 style="font-size: 32px; color: var(--header-text-color); text-shadow: 0 2px 4px rgba(0,0,0,0.5);">🪙 Tap Coin Game</h1>
+        <p style="color: #cbd5e1; max-width: 300px; margin: 0 auto; line-height: 1.5;">
             Bu vaqtincha ko'ngilochar o'yin! Tangalar yig'ing, kuchaytirgichlar sotib oling va reytingda yuqoriga chiqing.
         </p>
     </div>
@@ -85,6 +86,7 @@ body { background: var(--bg-color); color: var(--text-color); font-family: Arial
     <button class="btn" onclick="startGame()">O'yinni boshlash</button>
 </div>
 
+<!-- 2. ASOSIY TAP O'YIN EKRANI -->
 <div id="game-screen" class="screen">
     <div class="header">
         <div id="score">0</div>
@@ -92,16 +94,16 @@ body { background: var(--bg-color); color: var(--text-color); font-family: Arial
     </div>
     <div class="coin-container">
         <div id="coin">
-            <!-- Siz tashlagan rasm logosi -->
             <img src="https://i.ibb.co/3yk7p0x/7987.jpg" alt="Logo" id="coin-logo" />
         </div>
     </div>
     <div class="footer">
-        <div id="energyText" style="margin-bottom: 6px; font-size: 14px;">Energiya: 100 / 100</div>
+        <div id="energyText" style="margin-bottom: 6px; font-size: 14px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Energiya: 100 / 100</div>
         <div class="energy-bar"><div id="energyFill" class="energy-fill"></div></div>
     </div>
 </div>
 
+<!-- 3. KUCHAYTIRISHLAR (BOOST) BO'LIMI -->
 <div id="boost-screen" class="screen">
     <div class="section-title">⚡ Kuchaytirishlar</div>
     <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -123,6 +125,7 @@ body { background: var(--bg-color); color: var(--text-color); font-family: Arial
     <div></div>
 </div>
 
+<!-- 4. REYTING BO'LIMI -->
 <div id="rank-screen" class="screen">
     <div class="section-title">🏆 Reyting</div>
     <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -134,10 +137,11 @@ body { background: var(--bg-color); color: var(--text-color); font-family: Arial
     <div></div>
 </div>
 
+<!-- 5. QOIDALAR BO'LIMI -->
 <div id="rules-screen" class="screen">
     <div class="section-title">📜 O'yin qoidalari</div>
     <div class="card" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-        <p>1. Markaziy logoning ustiga bosib ballar yig'ing.</p>
+        <p>1. Markaziy 3D logoning ustiga bosib ballar yig'ing.</p>
         <p>2. Har bir bosish energiyani sarflaydi. Energiya 30 sekund ichida to'liq tiklanadi.</p>
         <p>3. "Boost" bo'limidan har bir bosish qiymatini oshirishingiz mumkin.</p>
         <p>4. Bu loyiha vaqtincha ko'ngilochar maqsadlarda tuzilgan.</p>
@@ -145,19 +149,21 @@ body { background: var(--bg-color); color: var(--text-color); font-family: Arial
     <div></div>
 </div>
 
+<!-- 6. PUL TO'LASH BO'LIMI (HAMYON) -->
 <div id="wallet-screen" class="screen">
     <div class="section-title">💳 Pulni chiqarish</div>
     <div class="card" style="flex-direction: column; align-items: center; text-align: center; gap: 15px; padding: 25px;">
         <p style="color: #94a3b8; margin: 0;">Sizning balansingiz:</p>
         <h2 id="walletScore" style="color: var(--header-text-color); margin: 0; font-size: 32px;">0 🪙</h2>
-        <p id="payoutStatusText" style="font-size: 13px; color: var(--text-color); line-height: 1.5; margin: 0;">
-            Pul to'lash sezoni kelishiga <b id="daysLeftNum" style="color: #f59e0b;">90</b> kun qoldi. 120 kundan keyin coinlarni almashtirishingiz mumkin.
+        <p id="payoutStatusText" style="font-size: 14px; color: var(--text-color); line-height: 1.5; margin: 0;">
+            Bot qachon pul to'lashi <b style="color: #f59e0b;"><span id="daysLeftNum">90</span> kundan keyin</b> e'lon qilinadi.
         </p>
         <button class="btn" style="width: 100%; font-size: 16px; padding: 12px;" onclick="alert('Hamyon funksiyasi tez orada ulanadi!')">Pul chiqarish so'rovi</button>
     </div>
     <div></div>
 </div>
 
+<!-- PASTKI NAVIGATSIYA MENYUSI -->
 <div class="nav-bar" id="navBar" style="display: none;">
     <button class="nav-item active" onclick="switchScreen('game-screen', this)"><span>🪙</span>O'yin</button>
     <button class="nav-item" onclick="switchScreen('boost-screen', this)"><span>⚡</span>Boost</button>
@@ -176,7 +182,6 @@ let tapUpgradeCost = parseInt(localStorage.getItem('gs_tapCost')) || 100;
 let botLevel = parseInt(localStorage.getItem('gs_botLevel')) || 0;
 let botCost = parseInt(localStorage.getItem('gs_botCost')) || 500;
 
-// Kunlarni hisoblash mantiqi
 let daysLeft = parseInt(localStorage.getItem('gs_daysLeft'));
 let lastCheckTime = parseInt(localStorage.getItem('gs_lastCheckTime'));
 const nowTime = Date.now();
@@ -213,11 +218,10 @@ function updateUI() {
     energyText.innerText = `Energiya: ${energy} / ${maxEnergy}`;
     energyFill.style.width = `${(energy / maxEnergy) * 100}%`;
 
-    // Matnni kunlarga qarab o'zgartirish
     if (daysLeft > 0) {
-        payoutStatusText.innerHTML = `Pul to'lash sezoni kelishiga <b style="color: #f59e0b;">${daysLeft}</b> kun qoldi. 120 kundan keyin coinlarni almashtirishingiz mumkin.`;
+        payoutStatusText.innerHTML = `Bot qachon pul to'lashi <b style="color: #f59e0b;">${daysLeft} kundan keyin</b> e'lon qilinadi.`;
     } else {
-        payoutStatusText.innerHTML = `90 kun o'tdi! Endi 120 kundan keyin pul to'lanadi va coinlar almashtiriladi.`;
+        payoutStatusText.innerHTML = `90 kun o'tdi! Endi pul to'lash vaqti e'lon qilinadi.`;
     }
 
     tapLevelEl.innerText = tapPower;
@@ -300,24 +304,6 @@ function upgradeBot() {
         updateUI();
         alert("Avto-robot faollashdi! Endi u har sekundda tanga yig'adi.");
     }
-}
-
-function toggleTheme() {
-    document.body.classList.toggle('dark');
-    const btn = document.getElementById('theme-toggle');
-    if (document.body.classList.contains('dark')) {
-        btn.innerText = '☀️';
-        localStorage.setItem('gs_theme', 'dark');
-    } else {
-        btn.innerText = '🌙';
-        localStorage.setItem('gs_theme', 'light');
-    }
-}
-
-const savedTheme = localStorage.getItem('gs_theme');
-if (savedTheme === 'light') {
-    document.body.classList.remove('dark');
-    document.getElementById('theme-toggle').innerText = '🌙';
 }
 
 setInterval(() => {
