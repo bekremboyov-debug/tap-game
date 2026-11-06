@@ -453,7 +453,6 @@ body {
     let xp = parseInt(localStorage.getItem('gs_xp_' + telegramId)) || 0;
     let level = parseInt(localStorage.getItem('gs_level_' + telegramId)) || 1;
     
-    // Referral o'zgaruvchilari
     let referralCount = parseInt(localStorage.getItem('gs_refCount_' + telegramId)) || 0;
     let referralEarned = parseInt(localStorage.getItem('gs_refEarned_' + telegramId)) || 0;
 
@@ -524,9 +523,9 @@ body {
         return "Rookie";
     }
 
-    // REFERRAL HAVOLASINI NUSXALASH VA ULASHISH
+    // REFERRAL HAVOLASI (Sizning botingiz username bilan to'g'irlandi)
     function getReferralLink() {
-        const botUsername = "coingame_bot"; // O'z botingiz username'ga almashtirishingiz mumkin
+        const botUsername = "SinovbotiN1bot"; 
         return `https://t.me/${botUsername}?start=ref_${telegramId}`;
     }
 
@@ -567,7 +566,6 @@ body {
                     level = data.level || 1;
                 }
             } else {
-                // Yangi foydalanuvchi kirganda start_param (referral) tekshirish
                 let startParam = tg?.initDataUnsafe?.start_param;
                 let referredBy = null;
                 if (startParam && startParam.startsWith('ref_')) {
@@ -674,7 +672,6 @@ body {
 
         streakCountEl.innerText = currentStreak;
 
-        // Referral statistikasi UI
         refCountText.innerText = referralCount + " ta";
         refEarnedText.innerText = formatNumber(referralEarned) + " 🪙";
 
