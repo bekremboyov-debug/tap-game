@@ -291,7 +291,7 @@ body {
     <div class="card">
         <div class="card-info">
             <h4>Ko'p bosish (+1 Tap)</h4>
-            <p>Har bir bosishda qo'shiladigan coin: <span id="tapLevel" style="color: var(--electric-cyan); font-weight: 700;">1</span></p>
+            <p>Daraja: <span id="tapLevel" style="color: var(--electric-cyan); font-weight: 700;">1</span> | Maks Energiya: <span id="maxEnergyText" style="color: var(--neon-violet); font-weight: 700;">100</span></p>
         </div>
         <button class="upgrade-btn" id="tapUpgradeBtn" onclick="upgradeTap()">100 🪙</button>
     </div>
@@ -455,8 +455,12 @@ body {
     let referralCount = parseInt(localStorage.getItem('gs_refCount_' + telegramId)) || 0;
     let referralEarned = parseInt(localStorage.getItem('gs_refEarned_' + telegramId)) || 0;
 
-    let energy = 100;
-    let maxEnergy = 100;
+    // Maksimal energiya tapPower ga qarab oshib boradi (Boshlang'ich 100, har bir tap level uchun +50 qo'shiladi)
+    let maxEnergy = 100 + (tapPower - 1) * 50;
+    let energy = parseInt(localStorage.getItem('gs_energy_' + telegramId));
+    if (isNaN(energy) || energy > maxEnergy) {
+        energy = maxEnergy;
+    }
 
     const scoreEl = document.getElementById('score');
     const walletScoreEl = document.getElementById('walletScore');
@@ -465,6 +469,7 @@ body {
     const energyFill = document.getElementById('energyFill');
     const coin = document.getElementById('coin');
     const tapLevelEl = document.getElementById('tapLevel');
+    const maxEnergyText = document.getElementById('maxEnergyText');
     const tapUpgradeBtn = document.getElementById('tapUpgradeBtn');
     const botUpgradeBtn = document.getElementById('botUpgradeBtn');
     const botLevelText = document.getElementById('botLevelText');
@@ -541,7 +546,6 @@ body {
         window.open(shareUrl, '_blank');
     }
 
-    // OFFLINE PROGRESS & BAZADAN SINXRONIZATSIYA
     async function syncData() {
         try {
             let { data, error } = await supabaseClient
@@ -556,21 +560,21 @@ body {
                     tapPower = data.tap_power || 1;
                     botLevel = data.bot_level || 0;
                     tapUpgradeCost = data.tap_cost || 100;
+                    maxEnergy = 100 + (tapPower - 1) * 50;
                 }
                 if (data.xp && data.xp > xp) {
                     xp = data.xp;
                     level = data.level || 1;
                 }
 
-                // Offline vaqt uchun passiv daromadni hisoblash
                 if (data.bot_level > 0 && data.updated_at) {
                     let lastTime = new Date(data.updated_at).getTime();
                     let nowTime = new Date().getTime();
                     let diffSeconds = Math.floor((nowTime - lastTime) / 1000);
-                    if (diffSeconds > 10 && diffSeconds < 604800) { // 7 kungacha
+                    if (diffSeconds > 10 && diffSeconds < 604800) {
                         let offlineCoins = diffSeconds * data.bot_level;
                         score += offlineCoins;
-                        alert(`⚡ Siz yo'q bo'lgan vaqtda avto-robotringiz ${offlineCoins.toLocaleString()} ta tanga yig'di!`);
+                        alert(`⚡ Siz yo'q bo'lgan vaqtda avto-robotringiz ${formatNumber(offlineCoins)} ta tanga yig'di!`);
                     }
                 }
             } else {
@@ -604,7 +608,6 @@ body {
         }
     }
 
-    // OPTIMALLASHTIRILGAN SAQLASH (RATE LIMIT / THROTTLE BILAN)
     let lastSaveTime = 0;
     async function saveUserData(forced = false) {
         localStorage.setItem('gs_score_' + telegramId, score);
@@ -618,9 +621,10 @@ body {
         localStorage.setItem('gs_level_' + telegramId, level);
         localStorage.setItem('gs_refCount_' + telegramId, referralCount);
         localStorage.setItem('gs_refEarned_' + telegramId, referralEarned);
+        localStorage.setItem('gs_energy_' + telegramId, energy);
 
         let now = Date.now();
-        if (!forced && now - lastSaveTime < 8000) return; // Har 8 sekunddan tez bazaga so'rov yubormaydi (optimizatsiya)
+        if (!forced && now - lastSaveTime < 8000) return;
         lastSaveTime = now;
 
         try {
@@ -669,6 +673,9 @@ body {
     }
 
     function updateUI() {
+        maxEnergy = 100 + (tapPower - 1) * 50;
+        if (energy > maxEnergy) energy = maxEnergy;
+
         scoreEl.innerText = formatNumber(score);
         walletScoreEl.innerText = formatNumber(score) + " 🪙";
         myRankScoreEl.innerText = formatNumber(score) + " 🪙";
@@ -677,6 +684,7 @@ body {
         energyFill.style.width = `${(energy / maxEnergy) * 100}%`;
 
         tapLevelEl.innerText = tapPower;
+        maxEnergyText.innerText = maxEnergy;
         tapUpgradeBtn.innerText = formatNumber(tapUpgradeCost) + " 🪙";
         tapUpgradeBtn.disabled = score < tapUpgradeCost;
 
@@ -784,8 +792,11 @@ body {
             score -= tapUpgradeCost;
             tapPower++;
             tapUpgradeCost = Math.floor(tapUpgradeCost * 1.8);
+            maxEnergy = 100 + (tapPower - 1) * 50;
+            energy = maxEnergy; // Daraja oshganda energiya to'liq to'ldiriladi
             updateUI();
             saveUserData(true);
+            alert(`⚡ Tap quvvati +1 ga oshdi! Maksimal energiya ${maxEnergy} ga yetdi va to'ldirildi.`);
         }
     }
 
@@ -816,7 +827,6 @@ body {
         }
     }, 300);
 
-    // O'yindan chiqayotganda ma'lumotni darhol saqlash
     window.addEventListener('beforeunload', () => {
         saveUserData(true);
     });
