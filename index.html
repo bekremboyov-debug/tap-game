@@ -280,7 +280,8 @@ body {
     </div>
     <div class="coin-container">
         <div id="coin">
-            <img src="Screenshot_20261106_021337_ChatGPT.jpg" alt="Logo" />
+            <!-- Yangi yuklangan rasm nomi ulandi -->
+            <img src="IMG_20261106_131044_262.jpg" alt="Logo" />
         </div>
     </div>
 </div>
@@ -489,7 +490,6 @@ body {
 
     updateUI();
 
-    // RAQAMLARNI IXCHAMLASH (10k, 1M, 1B)
     function formatNumber(num) {
         if (num < 10000) {
             return num.toLocaleString();
@@ -509,7 +509,6 @@ body {
         return num.toString();
     }
 
-    // UNVONLAR
     function getLevelRankTitle(lvl) {
         if (lvl >= 91) return "Immortal";
         if (lvl >= 76) return "Legend";
@@ -523,7 +522,6 @@ body {
         return "Rookie";
     }
 
-    // REFERRAL HAVOLASI (Sizning botingiz username bilan to'g'irlandi)
     function getReferralLink() {
         const botUsername = "SinovbotiN1bot"; 
         return `https://t.me/${botUsername}?start=ref_${telegramId}`;
@@ -545,7 +543,6 @@ body {
         window.open(shareUrl, '_blank');
     }
 
-    // BAZADAN SINXRONIZATSIYA
     async function syncData() {
         try {
             let { data, error } = await supabaseClient
@@ -595,7 +592,6 @@ body {
         }
     }
 
-    // SAQLASH
     async function saveUserData() {
         localStorage.setItem('gs_score_' + telegramId, score);
         localStorage.setItem('gs_tapPower_' + telegramId, tapPower);
