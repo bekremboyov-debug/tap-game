@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coin Game - Cyber Luxury & Referral System</title>
+<title>Coin Game - Cyber Luxury & Ultimate Optimized</title>
 <!-- Telegram Web App Skripti -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <!-- Supabase Kutubxonasi -->
@@ -30,7 +30,7 @@ body {
   text-align: center; 
   margin: 0; 
   padding: 0; 
-  height: 100vh; 
+  height: 100dvh; 
   overflow: hidden; 
 }
 
@@ -40,7 +40,7 @@ body {
   top: 0; 
   left: 0; 
   width: 100%; 
-  height: calc(100vh - 75px); 
+  height: calc(100dvh - 75px); 
   padding: 20px 16px 80px 16px; 
   overflow-y: auto; 
   flex-direction: column; 
@@ -280,7 +280,6 @@ body {
     </div>
     <div class="coin-container">
         <div id="coin">
-            <!-- Yangi yuklangan rasm nomi ulandi -->
             <img src="IMG_20261106_131044_262.jpg" alt="Logo" />
         </div>
     </div>
@@ -305,11 +304,10 @@ body {
     </div>
 </div>
 
-<!-- 3. VAZIFALAR & REFERRAL (INVITE FRIENDS) BO'LIMI -->
+<!-- 3. VAZIFALAR & REFERRAL BO'LIMI -->
 <div id="missions-screen" class="screen">
     <div class="section-title">📋 Vazifalar & Do'stlar</div>
     
-    <!-- REFERRAL CARD -->
     <div class="card" style="flex-direction: column; align-items: flex-start; gap: 12px; border: 1px solid var(--primary-purple); background: linear-gradient(135deg, rgba(25,27,45,0.9), rgba(147,51,234,0.1));">
         <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
             <h4 style="margin: 0; color: var(--electric-cyan); font-size: 16px;">👥 Do'stlarni taklif qilish</h4>
@@ -543,6 +541,7 @@ body {
         window.open(shareUrl, '_blank');
     }
 
+    // OFFLINE PROGRESS & BAZADAN SINXRONIZATSIYA
     async function syncData() {
         try {
             let { data, error } = await supabaseClient
@@ -561,6 +560,18 @@ body {
                 if (data.xp && data.xp > xp) {
                     xp = data.xp;
                     level = data.level || 1;
+                }
+
+                // Offline vaqt uchun passiv daromadni hisoblash
+                if (data.bot_level > 0 && data.updated_at) {
+                    let lastTime = new Date(data.updated_at).getTime();
+                    let nowTime = new Date().getTime();
+                    let diffSeconds = Math.floor((nowTime - lastTime) / 1000);
+                    if (diffSeconds > 10 && diffSeconds < 604800) { // 7 kungacha
+                        let offlineCoins = diffSeconds * data.bot_level;
+                        score += offlineCoins;
+                        alert(`⚡ Siz yo'q bo'lgan vaqtda avto-robotringiz ${offlineCoins.toLocaleString()} ta tanga yig'di!`);
+                    }
                 }
             } else {
                 let startParam = tg?.initDataUnsafe?.start_param;
@@ -582,7 +593,8 @@ body {
                         tap_cost: tapUpgradeCost, 
                         xp: xp, 
                         level: level,
-                        referred_by: referredBy
+                        referred_by: referredBy,
+                        updated_at: new Date().toISOString()
                     }
                 ]);
             }
@@ -592,7 +604,9 @@ body {
         }
     }
 
-    async function saveUserData() {
+    // OPTIMALLASHTIRILGAN SAQLASH (RATE LIMIT / THROTTLE BILAN)
+    let lastSaveTime = 0;
+    async function saveUserData(forced = false) {
         localStorage.setItem('gs_score_' + telegramId, score);
         localStorage.setItem('gs_tapPower_' + telegramId, tapPower);
         localStorage.setItem('gs_tapCost_' + telegramId, tapUpgradeCost);
@@ -605,6 +619,10 @@ body {
         localStorage.setItem('gs_refCount_' + telegramId, referralCount);
         localStorage.setItem('gs_refEarned_' + telegramId, referralEarned);
 
+        let now = Date.now();
+        if (!forced && now - lastSaveTime < 8000) return; // Har 8 sekunddan tez bazaga so'rov yubormaydi (optimizatsiya)
+        lastSaveTime = now;
+
         try {
             await supabaseClient
                 .from('users')
@@ -614,7 +632,8 @@ body {
                     bot_level: botLevel, 
                     tap_cost: tapUpgradeCost,
                     xp: xp,
-                    level: level
+                    level: level,
+                    updated_at: new Date().toISOString()
                 })
                 .eq('telegram_id', telegramId);
         } catch (err) {
@@ -718,7 +737,7 @@ body {
             score += 10000000000000;
             promoUsed = true;
             updateUI();
-            saveUserData();
+            saveUserData(true);
             alert("🎉 Tabriklaymiz! Promo-kod muvaffaqiyatli faollashdi va sizga +10,000,000,000,000 🪙 qo'shildi!");
             document.getElementById('promoInput').value = "";
         } else {
@@ -766,7 +785,7 @@ body {
             tapPower++;
             tapUpgradeCost = Math.floor(tapUpgradeCost * 1.8);
             updateUI();
-            saveUserData();
+            saveUserData(true);
         }
     }
 
@@ -776,7 +795,7 @@ body {
             botLevel++;
             botCost = Math.floor(botCost * 2.2);
             updateUI();
-            saveUserData();
+            saveUserData(true);
             alert(`⚡ Avto-robot ${botLevel}-darajaga ko'tarildi! Endi u sekundiga ${botLevel} ta tanga yig'adi.`);
         }
     }
@@ -796,6 +815,11 @@ body {
             updateUI();
         }
     }, 300);
+
+    // O'yindan chiqayotganda ma'lumotni darhol saqlash
+    window.addEventListener('beforeunload', () => {
+        saveUserData(true);
+    });
 
     syncData();
 </script>
